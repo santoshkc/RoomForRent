@@ -1,0 +1,36 @@
+﻿@model IEnumerable<Renter>
+<div class="bg-dark text-white text-center p-2">
+    <span class="navbar-brand text-center">Active Renters</span>
+    <a class="btn btn-light float-right" asp-action="Create">Add New Renter</a>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Contact</th>
+            <th>Seeked Asset</th>
+            <th>Details</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var renter in Model)
+        {
+            <tr>
+                <td>@renter.Name</td>
+                <td>@renter.Address</td>
+                <td>@renter.ContactNumber</td>
+                <td>@renter.SeekedAsset.ToString()</td>
+                <td><a asp-action="Details" asp-route-id="@renter.ID">View Details</a></td>
+                <td>
+                    <form asp-action="MarkAsFound" method="post">
+                        <input type="hidden" name="renterId" value="@renter.ID" />
+                        <button class="btn btn-dark" type="submit">Mark as Found</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

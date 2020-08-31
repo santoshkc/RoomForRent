@@ -1,0 +1,41 @@
+﻿@model IEnumerable<Leaser>
+<div class="bg-dark text-white text-center p-2">
+    <span class="navbar-brand ml-2">Active Leasers</span>
+    <a class="btn btn-light float-right" asp-action="Create">Add New Leaser</a>
+</div>
+<div>
+    <table class="table table-sm table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Asset Type</th>
+                <th>Leased
+                <th />
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var leaserInfo in Model)
+            {
+                <tr>
+                    <td>@leaserInfo.Name</td>
+                    <td>@leaserInfo.Address</td>
+                    <td>@leaserInfo.AssetInfo.Type.ToString()</td>
+                    <td>@(leaserInfo.AssetInfo.IsLeased.HasValue && 
+                        leaserInfo.AssetInfo.IsLeased.Value == true
+                        ? "Yes" : "No")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@leaserInfo.ID">View Details</a>
+                    </td>
+                    <td>
+                        <form asp-action = "MarkAsLeased" method="post">
+                            <input type="hidden" name ="leaserId" value="@leaserInfo.ID" />
+                            <button type ="submit" class="btn btn-dark" >Mark As Leased</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

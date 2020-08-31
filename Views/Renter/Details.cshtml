@@ -1,0 +1,25 @@
+﻿@model Renter
+@if (Model == null)
+{
+    <div>No information available</div>
+}
+else
+{
+    <div class="container">
+        <div class="row" >
+            Name: @Model.Name
+        </div>
+        <div class="row" >
+            Address: @Model.Address
+        </div>
+        <div class="row">
+            Contact: @Model.ContactNumber
+        </div>
+        <div class="row">
+            Seeking Asset: @Model.SeekedAsset.ToString()
+        </div>
+        <div class="row">
+            Description: @Model.Description
+        </div>
+    </div>
+}
