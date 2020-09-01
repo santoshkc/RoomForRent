@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using RoomForRent.Models;
+using RoomForRent.Models.ViewModel;
 
 namespace RoomForRent.Controllers
 {
@@ -14,13 +15,34 @@ namespace RoomForRent.Controllers
         public LeaserController(ILeaserRepository roomLeaserRepository) {
             this.leaserRepository = roomLeaserRepository;
         }
+        
+        private static int ItemsPerPage = 5;
 
-        public IActionResult Index() {
+        public IActionResult Index(int pageCount) {
+            if (pageCount <= 1)
+                pageCount = 1;
+
             var leasers = this.leaserRepository
                 .Leaser
                 .Where(x => x.AssetInfo.IsLeased == null 
-                || x.AssetInfo.IsLeased== false);
-            return View(leasers);
+                || x.AssetInfo.IsLeased== false)
+                .Skip( (pageCount-1) * ItemsPerPage)
+                .Take(ItemsPerPage)
+                .ToList();
+
+            var leaserViewInfo = new LeaserListViewModel
+            {
+                Leasers = leasers,
+                PagingInfo = new PagingInfo
+                {
+                    CurrentPage = pageCount,
+                    ItemsPerPage = LeaserController.ItemsPerPage,
+                    TotalItems = this.leaserRepository.Leaser
+                                .Count(x => x.AssetInfo.IsLeased == null
+                                || x.AssetInfo.IsLeased == false)
+                }
+            };
+            return View(leaserViewInfo);
         }
 
         public IActionResult Details([FromRoute(Name ="id")] int leaserId)

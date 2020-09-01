@@ -35,11 +35,19 @@ namespace RoomForRent
 
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapControllerRoute("Leaser", "Leasers", new
-                //{
-                //    Controller = "RoomLeaserController",
-                //    action = "Index"
-                //});
+                endpoints.MapControllerRoute("Leaser",
+                    "Leaser/Page{pageCount}",
+                    new {
+                        Controller = "Leaser",
+                        action = "Index"
+                    });
+
+                endpoints.MapControllerRoute("Renter",
+                    "Renter/Page{pageCount}",
+                    new {
+                        Controller = "Renter",
+                        action = "Index"
+                    });
                 endpoints.MapDefaultControllerRoute();
             });
         }
