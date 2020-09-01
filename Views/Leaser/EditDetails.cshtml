@@ -1,4 +1,4 @@
-﻿@model Leaser
+﻿@model LeaserEditModel
 
 @if(Model == null)
 {
@@ -22,28 +22,28 @@
             <input asp-for="ContactNumber" class="form-control" />
         </div>
         <div class="form-group">
-            <label asp-for="AssetInfo.Description">Description: </label>
-            <input asp-for="AssetInfo.Description" class="form-control" />
+            <label asp-for="Description">Description: </label>
+            <input asp-for="Description" class="form-control" />
         </div>
         <div class="form-group">
             <label>Asset Type</label>
-            <select asp-for="AssetInfo.Type" class="form-control">
+            <select asp-for="AssetType" class="form-control">
                 @foreach (var assetType in Enum.GetValues(typeof(AssetType)))
                 {
-                    if (assetType == Model.AssetInfo.Type.ToString())
+                    if (assetType == Model.AssetType.ToString())
                     {
                         <option value="@assetType" selected>@assetType</option>
                     }
                     else
                     {
-                        <option value="@assetType" selected>@assetType</option>
+                        <option value="@assetType">@assetType</option>
                     }
                 }
             </select>
         </div>
         <div class="form-group">
-            <label asp-for="AssetInfo.Location">Asset Location: </label>
-            <input asp-for="AssetInfo.Location" class="form-control" />
+            <label asp-for="AssetLocation">Asset Location: </label>
+            <input asp-for="AssetLocation" class="form-control" />
         </div>
         <button type="submit" class="btn btn-dark">Update</button>
     </form>

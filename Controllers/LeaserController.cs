@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using RoomForRent.Infrastructure;
 using RoomForRent.Models;
+using RoomForRent.Models.LeaserModels;
 using RoomForRent.Models.ViewModel;
 
 namespace RoomForRent.Controllers
@@ -55,20 +56,57 @@ namespace RoomForRent.Controllers
                 .Leaser
                 .Where(x => x.ID == leaserId)
                 .FirstOrDefault();
-            return View(leaser);
+
+            if (leaser == null)
+                return NotFound();
+
+            LeaserEditModel leaserEditModel = CreateLeaserEditModelFromLeaser(leaser);
+            return View(leaserEditModel);
+        }
+
+        private static LeaserEditModel CreateLeaserEditModelFromLeaser(Leaser leaser)
+        {
+            return new LeaserEditModel
+            {
+                ID = leaser.ID,
+                Name = leaser.Name,
+                Address = leaser.Address,
+                ContactNumber = leaser.ContactNumber,
+                AssetLocation = leaser.AssetInfo.Location,
+                AssetType = leaser.AssetInfo.Type,
+                Description = leaser.AssetInfo.Description
+            };
         }
 
         [HttpPost]
         // custom attribute created for implementing
         // POST-REDIRECT-GET pattern
         [ExportModelState]
-        public IActionResult EditDetails(Leaser leaser)
+        public IActionResult EditDetails(LeaserEditModel leaserEditModel)
         {
             if(ModelState.IsValid)
             {
+                var leaser = this.leaserRepository
+                    .Leaser
+                    .Where(x => x.ID == leaserEditModel.ID)
+                    .FirstOrDefault();
+                if (leaser == null)
+                    return NotFound();
+                MapLeaserEditModelToLeaserObject(leaserEditModel, leaser);
+
                 return RedirectToAction("Index");
             }
-            return RedirectToAction("EditDetails", new { id = leaser.ID });
+            return RedirectToAction("EditDetails", new { id = leaserEditModel.ID });
+        }
+
+        private static void MapLeaserEditModelToLeaserObject(LeaserEditModel leaserEditModel, Leaser leaser)
+        {
+            leaser.Address = leaserEditModel.Address;
+            leaser.ContactNumber = leaserEditModel.ContactNumber;
+            leaser.Name = leaserEditModel.Name;
+            leaser.AssetInfo.Description = leaserEditModel.Description;
+            leaser.AssetInfo.Location = leaserEditModel.AssetLocation;
+            leaser.AssetInfo.Type = leaserEditModel.AssetType;
         }
 
         public IActionResult Details([FromRoute(Name ="id")] int leaserId)
