@@ -1,4 +1,4 @@
-﻿@model Leaser
+﻿@model LeaserCreateModel
 <h2 class="bg-dark text-white">Enter Leaser Details</h2>
 <div class="container-fluid">
     <div asp-validation-summary="All"></div>
@@ -16,8 +16,8 @@
             <input asp-for="ContactNumber" class="form-control"/>
         </div>
         <div class="form-group">
-            <label asp-for="AssetInfo.Type">Asset Type: </label>
-            <select asp-for="AssetInfo.Type" class="form-control">
+            <label asp-for="AssetType">Asset Type: </label>
+            <select asp-for="AssetType" class="form-control">
                 @foreach(var x in Enum.GetNames(typeof(AssetType)))
                 {
                     <option value="@x">@x</option>
@@ -25,12 +25,12 @@
             </select>
         </div>
         <div class="form-group">
-            <label asp-for="AssetInfo.Description">Description: </label>
-            <input asp-for="AssetInfo.Description" class="form-control" />
+            <label asp-for="Description">Description: </label>
+            <input asp-for="Description" class="form-control" />
         </div>
         <div class="form-group">
-            <label asp-for="AssetInfo.Location">Asset Location: </label>
-            <input asp-for="AssetInfo.Location" class="form-control"/>
+            <label asp-for="AssetLocation">Asset Location: </label>
+            <input asp-for="AssetLocation" class="form-control"/>
         </div>
         <button class="btn btn-dark" type="submit">Submit</button>
     </form>

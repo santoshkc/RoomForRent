@@ -46,6 +46,8 @@ namespace RoomForRent.Controllers
             return View(leaserViewInfo);
         }
 
+        // custom attribute created for implementing
+        // POST-REDIRECT-GET pattern
         [ImportModelState]
         public IActionResult EditDetails([FromRoute(Name = "id")] int leaserId)
         {
@@ -57,6 +59,8 @@ namespace RoomForRent.Controllers
         }
 
         [HttpPost]
+        // custom attribute created for implementing
+        // POST-REDIRECT-GET pattern
         [ExportModelState]
         public IActionResult EditDetails(Leaser leaser)
         {
@@ -114,24 +118,47 @@ namespace RoomForRent.Controllers
             return RedirectToAction("Index");
         }
 
+        // custom attribute created for implementing
+        // POST-REDIRECT-GET pattern
+        [ImportModelState]
         public IActionResult Create() {
-            return View();
+            return View(new LeaserCreateModel());
         }
 
         [HttpPost]
-        public IActionResult Create(Leaser roomLeaser)
+        // custom attribute created for implementing
+        // POST-REDIRECT-GET pattern
+        [ExportModelState]
+        public IActionResult Create(LeaserCreateModel leaserCreateModel)
         {
             if (this.ModelState.IsValid)
             {
                 var id = this.leaserRepository.Leaser.Count() + 1;
-                roomLeaser.ID = id;
-                this.leaserRepository.AddLeaser(roomLeaser);
+                Leaser leaser = CreateLeaserFromLeaserCreateModel(leaserCreateModel, id);
+                this.leaserRepository.AddLeaser(leaser);
                 return RedirectToAction("Index");
             }
             else
             {
-                return View();
+                return RedirectToAction("Create");
             }
+        }
+
+        private static Leaser CreateLeaserFromLeaserCreateModel(LeaserCreateModel leaserCreateModel, int id)
+        {
+            return new Leaser
+            {
+                ID = id,
+                Name = leaserCreateModel.Name,
+                Address = leaserCreateModel.Address,
+                ContactNumber = leaserCreateModel.ContactNumber,
+                AssetInfo = new Asset
+                {
+                    Description = leaserCreateModel.Description,
+                    Location = leaserCreateModel.AssetLocation,
+                    Type = leaserCreateModel.AssetType,
+                }
+            };
         }
     }
 }
