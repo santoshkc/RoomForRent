@@ -32,7 +32,8 @@ namespace RoomForRent.Models
         [Required(ErrorMessage = "Location should be required.")]
         public string Location { get; set; }
 
-        public bool? IsLeased { get; set; } 
+        public bool? IsLeased { get; set; }
+        public DateTime? LeasedDate { get; set; }
 
         [Required(ErrorMessage = "Description should be required.")]
         public string Description { get; set; }

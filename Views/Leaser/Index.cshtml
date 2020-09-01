@@ -1,8 +1,9 @@
 ﻿@model IEnumerable<Leaser>
-<div class="bg-dark text-white text-center p-2">
-    <span class="navbar-brand ml-2">Active Leasers</span>
-    <a class="btn btn-light float-right" asp-action="Create">Add New Leaser</a>
-</div>
+    <div class="bg-dark text-white text-center p-2">
+        <span class="navbar-brand ml-2">Active Leasers</span>
+        <a class="btn btn-light float-right m-1" asp-action="History">History</a>
+        <a class="btn btn-light float-right m-1" asp-action="Create">Add New Leaser</a>
+    </div>
 <div>
     <table class="table table-sm table-striped table-bordered">
         <thead>

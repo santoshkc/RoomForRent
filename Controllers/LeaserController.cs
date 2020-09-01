@@ -32,6 +32,14 @@ namespace RoomForRent.Controllers
             return View(leaser);
         }
 
+        public IActionResult History()
+        {
+            var pastLeasers = this.leaserRepository.
+                Leaser
+                .Where(x => x.AssetInfo.IsLeased == true);
+            return View(pastLeasers);
+        }
+
         [HttpPost]
         public IActionResult MarkAsLeased(int leaserId) {
             var leaser = this.leaserRepository.Leaser
@@ -39,6 +47,7 @@ namespace RoomForRent.Controllers
             if(leaser != null)
             {
                 leaser.AssetInfo.IsLeased = true;
+                leaser.AssetInfo.LeasedDate = DateTime.Now;
             }
             return RedirectToAction("Index");
         }

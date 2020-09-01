@@ -1,8 +1,7 @@
 ﻿@model IEnumerable<Renter>
     <div class="bg-dark text-white text-center p-2">
-        <span class="navbar-brand text-center">Active Renters</span>
-        <a class="btn btn-light float-right m-1" asp-action="History">History</a>
-        <a class="btn btn-light float-right m-1" asp-action="Create">Add New Renter</a>
+        <span class="navbar-brand text-center">Past Renters</span>
+        <a class="btn btn-light float-right" asp-action="Index">Active Renters</a>
     </div>
 
 <table class="table table-bordered table-striped">
@@ -13,11 +12,11 @@
             <th>Contact</th>
             <th>Seeked Asset</th>
             <th>Details</th>
-            <th></th>
+            <th>Found Date</th>
         </tr>
     </thead>
     <tbody>
-        @foreach(var renter in Model)
+        @foreach (var renter in Model)
         {
             <tr>
                 <td>@renter.Name</td>
@@ -26,10 +25,8 @@
                 <td>@renter.SeekedAsset.ToString()</td>
                 <td><a asp-action="Details" asp-route-id="@renter.ID">View Details</a></td>
                 <td>
-                    <form asp-action="MarkAsFound" method="post">
-                        <input type="hidden" name="renterId" value="@renter.ID" />
-                        <button class="btn btn-dark" type="submit">Mark as Found</button>
-                    </form>
+                    @(renter.FoundDate.HasValue ? renter.FoundDate.Value.ToShortDateString(): 
+                    "N/A")
                 </td>
             </tr>
         }

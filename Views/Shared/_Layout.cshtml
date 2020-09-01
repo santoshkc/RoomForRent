@@ -11,7 +11,18 @@
             <h1>Welcome to Room for Rent</h1>
         </div>
         <div>
-            @RenderBody()
+            <div class="row m-2">
+                <div class="col-2">
+                    <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Leaser">Leasers</a>
+                    <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Renter">Renters</a>
+                </div>
+                <div class="col">
+                    @RenderBody()
+                </div>
+                <div class="col-2">
+                    Side Bar Content
+                </div>
+            </div>
         </div>
     </body>
 </html>

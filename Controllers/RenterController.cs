@@ -24,6 +24,14 @@ namespace RoomForRent.Controllers
             return View(renters);
         }
 
+        public IActionResult History()
+        {
+            var pastRenters = this.renterRepository
+                .Renters
+                .Where(x => x.Found == true);
+            return View(pastRenters);
+        }
+
         [HttpPost]
         public IActionResult MarkAsFound(int renterId)
         {
@@ -35,6 +43,7 @@ namespace RoomForRent.Controllers
             if(renter != null)
             {
                 renter.Found = true;
+                renter.FoundDate = DateTime.Now;
             }
             return RedirectToAction("Index");
         }

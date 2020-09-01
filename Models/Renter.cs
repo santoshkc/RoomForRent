@@ -24,6 +24,8 @@ namespace RoomForRent.Models
 
         public bool? Found { get; set; }
 
+        public DateTime? FoundDate { get; set; }
+
         [Required(ErrorMessage = "Description should be entered.")]
         public string Description { get; set; }
     }
