@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using RoomForRent.Infrastructure;
 using RoomForRent.Models;
 using RoomForRent.Models.ViewModel;
 
@@ -43,6 +44,27 @@ namespace RoomForRent.Controllers
                 }
             };
             return View(leaserViewInfo);
+        }
+
+        [ImportModelState]
+        public IActionResult EditDetails([FromRoute(Name = "id")] int leaserId)
+        {
+            var leaser = this.leaserRepository
+                .Leaser
+                .Where(x => x.ID == leaserId)
+                .FirstOrDefault();
+            return View(leaser);
+        }
+
+        [HttpPost]
+        [ExportModelState]
+        public IActionResult EditDetails(Leaser leaser)
+        {
+            if(ModelState.IsValid)
+            {
+                return RedirectToAction("Index");
+            }
+            return RedirectToAction("EditDetails", new { id = leaser.ID });
         }
 
         public IActionResult Details([FromRoute(Name ="id")] int leaserId)

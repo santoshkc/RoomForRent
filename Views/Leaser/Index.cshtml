@@ -31,7 +31,10 @@
                         ? "Yes" : "No")
                         </td>
                         <td>
-                            <a asp-action="Details" asp-route-id="@leaserInfo.ID">View Details</a>
+                            <span>
+                                <a asp-action="Details" asp-route-id="@leaserInfo.ID">View</a>
+                                <a asp-action="EditDetails" asp-route-id="@leaserInfo.ID" class="m-1">Edit</a>
+                            </span>
                         </td>
                         <td>
                             <form asp-action="MarkAsLeased" method="post">
