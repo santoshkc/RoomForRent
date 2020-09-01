@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using RoomForRent.Infrastructure;
 using RoomForRent.Models;
 
 namespace RoomForRent.Controllers
@@ -57,25 +58,110 @@ namespace RoomForRent.Controllers
             return View(renter);
         }
 
+        // custom attributed created for implementing
+        // POST-REDIRECT-GET pattern
+        [ImportModelState]
         public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
-        public IActionResult Create(Renter renter)
+        // custom attributed created for implementing
+        // POST-REDIRECT-GET pattern
+        [ExportModelState]
+        public IActionResult Create(RenterCreateModel renterCreateModel)
         {
             if(this.ModelState.IsValid)
             {
                 var id = this.renterRepository.Renters.Count() + 1;
-                renter.ID = id;
+                Renter renter = CreateRenterObjectFromRenterCreateModel(renterCreateModel, id);
                 this.renterRepository.AddRenter(renter);
                 return RedirectToAction("Index");
             }
             else
             {
-                return View();
+                return RedirectToAction("Create");
             }
+        }
+
+        private static Renter CreateRenterObjectFromRenterCreateModel(RenterCreateModel renterCreateModel, int id)
+        {
+            return new Renter
+            {
+                ID = id,
+                Name = renterCreateModel.Name,
+                Address = renterCreateModel.Address,
+                ContactNumber = renterCreateModel.Address,
+                Description = renterCreateModel.Description,
+                SeekedAsset = renterCreateModel.SeekedAsset,
+            };
+        }
+
+        [ImportModelState]
+        public IActionResult EditDetails([FromRoute(Name = "id")] int renterId)
+        {
+            var renter = this.renterRepository
+                .Renters
+                .Where(x => x.ID == renterId)
+                .FirstOrDefault();
+
+            // will use auto mapper later
+            // for now manual mapping
+            if(renter != null)
+            {
+                RenterEditModel renterEditModel = MapRenterObjectToRenterEditModel(renterId, renter);
+                return View(renterEditModel);
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
+        private static RenterEditModel MapRenterObjectToRenterEditModel(int renterId, Renter renter)
+        {
+            return new RenterEditModel
+            {
+                ID = renterId,
+                Name = renter.Name,
+                ContactNumber = renter.ContactNumber,
+                Address = renter.Address,
+                Description = renter.Description,
+                SeekedAsset = renter.SeekedAsset,
+            };
+        }
+
+        [HttpPost]
+        [ExportModelState]
+        public IActionResult EditDetails(RenterEditModel renterEditModel)
+        {
+            if (ModelState.IsValid)
+            {
+                var renterModel = this.
+                    renterRepository
+                    .Renters
+                    .Where(x => x.ID == renterEditModel.ID)
+                    .FirstOrDefault();
+                if (renterModel == null)
+                {
+                    return NotFound();
+                }
+
+                MapRenterEditModelToRenterObject(renterEditModel, renterModel);
+
+                return RedirectToAction("Index");
+            }
+            return RedirectToAction("EditDetails", new { id = renterEditModel.ID });
+        }
+
+        private static void MapRenterEditModelToRenterObject(RenterEditModel renterEditModel, Renter renterModel)
+        {
+            renterModel.Name = renterEditModel.Name;
+            renterModel.Address = renterEditModel.Address;
+            renterModel.ContactNumber = renterEditModel.ContactNumber;
+            renterModel.Description = renterEditModel.Description;
+            renterEditModel.SeekedAsset = renterEditModel.SeekedAsset;
         }
     }
 }

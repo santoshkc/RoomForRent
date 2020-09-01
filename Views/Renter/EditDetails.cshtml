@@ -1,0 +1,46 @@
+﻿@model RenterEditModel
+
+@if(Model == null)
+{
+    <h2>No information available.</h2>
+} else
+{
+    <h2>Edit Renter Details:</h2>
+    <div asp-validation-summary="All">
+    </div>
+    <form asp-action="EditDetails" method="post">
+        <div class="form-group">
+            <label asp-for="Name">Name: </label>
+            <input asp-for="Name" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="Address">Address: </label>
+            <input asp-for="Address" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="ContactNumber">Contact Number: </label>
+            <input asp-for="ContactNumber" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="Description">Description: </label>
+            <input asp-for="Description" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Asset Type</label>
+            <select asp-for="SeekedAsset" class="form-control">
+                @foreach (var assetType in Enum.GetValues(typeof(AssetType)))
+                {
+                    if (assetType == @Model.SeekedAsset.ToString())
+                    {
+                        <option value="@assetType" selected>@assetType</option>
+                    }
+                    else
+                    {
+                        <option value="@assetType" selected>@assetType</option>
+                    }
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-dark">Update</button>
+    </form>
+}

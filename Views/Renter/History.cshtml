@@ -23,7 +23,9 @@
                 <td>@renter.Address</td>
                 <td>@renter.ContactNumber</td>
                 <td>@renter.SeekedAsset.ToString()</td>
-                <td><a asp-action="Details" asp-route-id="@renter.ID">View Details</a></td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@renter.ID">View Details</a>
+                </td>
                 <td>
                     @(renter.FoundDate.HasValue ? renter.FoundDate.Value.ToShortDateString(): 
                     "N/A")

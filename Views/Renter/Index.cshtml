@@ -24,7 +24,10 @@
                 <td>@renter.Address</td>
                 <td>@renter.ContactNumber</td>
                 <td>@renter.SeekedAsset.ToString()</td>
-                <td><a asp-action="Details" asp-route-id="@renter.ID">View Details</a></td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@renter.ID">View Details</a>
+                    <a asp-action="EditDetails" asp-route-id="@renter.ID" class="m-1">Edit</a>
+                </td>
                 <td>
                     <form asp-action="MarkAsFound" method="post">
                         <input type="hidden" name="renterId" value="@renter.ID" />
