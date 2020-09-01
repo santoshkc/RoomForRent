@@ -42,6 +42,14 @@ namespace RoomForRent
                         action = "Index"
                     });
 
+                endpoints.MapControllerRoute("LeaserHistory",
+                    "Leaser/History/Page{pageCount}"
+                    , new
+                    {
+                        Controller = "Leaser",
+                        action = "History",
+                    });
+
                 endpoints.MapControllerRoute("Renter",
                     "Renter/Page{pageCount}",
                     new {

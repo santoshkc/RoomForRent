@@ -1,36 +1,50 @@
 ﻿<h2>Past Leasers</h2>
-@model IEnumerable<Leaser>
+@model LeaserHistoryViewModel
 <div class="bg-dark text-white text-center p-2">
     <span class="navbar-brand ml-2">Past Leasers</span>
     <a class="btn btn-light float-right" asp-action="Index">Active Leasers</a>
 </div>
-<div>
-    <table class="table table-sm table-striped table-bordered">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Address</th>
-                <th>Asset Type</th>
-                <th>Leased Date
-                <th />
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var leaserInfo in Model)
-            {
-                <tr>
-                    <td>@leaserInfo.Name</td>
-                    <td>@leaserInfo.Address</td>
-                    <td>@leaserInfo.AssetInfo.Type.ToString()</td>
-                    <td>
-                        @(leaserInfo.AssetInfo.LeasedDate.HasValue ?
+
+<div class="container-fluid">
+    <div class="row">
+            <table class="table table-sm table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Asset Type</th>
+                        <th>Leased Date
+                        <th />
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var leaserInfo in Model.Leasers)
+                    {
+                        <tr>
+                            <td>@leaserInfo.Name</td>
+                            <td>@leaserInfo.Address</td>
+                            <td>@leaserInfo.AssetInfo.Type.ToString()</td>
+                            <td>
+                                @(leaserInfo.AssetInfo.LeasedDate.HasValue ?
                         leaserInfo.AssetInfo.LeasedDate.Value.ToShortDateString() : "N/A")
-                    </td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@leaserInfo.ID">View Details</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@leaserInfo.ID">View Details</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+    </div>
+    @if (Model.Leasers.Count() > 0)
+    {
+        <div class="row">
+            <div page-model="@Model.PagingInfo" page-action="History"
+                 page-classes-enabled="true" page-class="btn"
+                 page-class-normal="btn-outline-dark" 
+                 page-class-selected="btn-dark"
+                 class="btn-group pull-right m-1">
+            </div>
+        </div>
+    }
 </div>

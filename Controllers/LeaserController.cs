@@ -54,12 +54,30 @@ namespace RoomForRent.Controllers
             return View(leaser);
         }
 
-        public IActionResult History()
+        public IActionResult History(int pageCount)
         {
+            if (pageCount < 1)
+                pageCount = 1;
+
             var pastLeasers = this.leaserRepository.
                 Leaser
-                .Where(x => x.AssetInfo.IsLeased == true);
-            return View(pastLeasers);
+                .Where(x => x.AssetInfo.IsLeased == true)
+                .Skip( (pageCount - 1) * ItemsPerPage)
+                .Take(ItemsPerPage)
+                .ToList();
+
+            var leaserHistoryViewModel = new LeaserHistoryViewModel
+            {
+                Leasers = pastLeasers,
+                PagingInfo = new PagingInfo
+                {
+                    CurrentPage = pageCount,
+                    ItemsPerPage = ItemsPerPage,
+                    TotalItems = this.leaserRepository.
+                    Leaser.Count(x => x.AssetInfo.IsLeased == true)
+                }
+            };
+            return View(leaserHistoryViewModel);
         }
 
         [HttpPost]
