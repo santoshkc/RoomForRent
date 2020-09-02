@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,6 +9,7 @@ namespace RoomForRent.Models
 {
     public class Leaser
     {
+        [Key]
         public int ID { get; set; }
 
         [Required(ErrorMessage ="Name should be entered.")]
@@ -26,6 +28,12 @@ namespace RoomForRent.Models
 
     public class Asset
     {
+        [ForeignKey(nameof(Leaser))]
+        [Key]
+        public int ID { get; set; }
+
+        public Leaser Leaser { get; set; }
+
         [Required(ErrorMessage ="Asset type should be entered.")]
         public AssetType Type { get; set; }
 

@@ -37,16 +37,22 @@ namespace RoomForRent.Models
             }
         };
 
-        public IEnumerable<Leaser> Leaser
+        public IQueryable<Leaser> Leaser
         {
             get {
-                return leasers;
+                //return leasers;
+                return null;
             }
         }
 
         public void AddLeaser(Leaser roomLeaser)
         {
             leasers.Add(roomLeaser);
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            return true;
         }
     }
 }

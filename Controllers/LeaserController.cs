@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RoomForRent.Infrastructure;
 using RoomForRent.Models;
 using RoomForRent.Models.LeaserModels;
@@ -20,17 +21,18 @@ namespace RoomForRent.Controllers
         
         private static int ItemsPerPage = 5;
 
-        public IActionResult Index(int pageCount) {
+        public async Task<IActionResult> Index(int pageCount) {
             if (pageCount <= 1)
                 pageCount = 1;
 
-            var leasers = this.leaserRepository
+            var leasers = await this.leaserRepository
                 .Leaser
+                .Include( x => x.AssetInfo)
                 .Where(x => x.AssetInfo.IsLeased == null 
                 || x.AssetInfo.IsLeased== false)
                 .Skip( (pageCount-1) * ItemsPerPage)
                 .Take(ItemsPerPage)
-                .ToList();
+                .ToListAsync();
 
             var leaserViewInfo = new LeaserListViewModel
             {
@@ -39,8 +41,9 @@ namespace RoomForRent.Controllers
                 {
                     CurrentPage = pageCount,
                     ItemsPerPage = LeaserController.ItemsPerPage,
-                    TotalItems = this.leaserRepository.Leaser
-                                .Count(x => x.AssetInfo.IsLeased == null
+                    TotalItems = await this.leaserRepository.Leaser
+                                 .Include(x => x.AssetInfo)
+                                .CountAsync(x => x.AssetInfo.IsLeased == null
                                 || x.AssetInfo.IsLeased == false)
                 }
             };
@@ -50,12 +53,13 @@ namespace RoomForRent.Controllers
         // custom attribute created for implementing
         // POST-REDIRECT-GET pattern
         [ImportModelState]
-        public IActionResult EditDetails([FromRoute(Name = "id")] int leaserId)
+        public async Task<IActionResult> EditDetails([FromRoute(Name = "id")] int leaserId)
         {
-            var leaser = this.leaserRepository
+            var leaser = await this.leaserRepository
                 .Leaser
                 .Where(x => x.ID == leaserId)
-                .FirstOrDefault();
+                .Include(x => x.AssetInfo)
+                .FirstOrDefaultAsync();
 
             if (leaser == null)
                 return NotFound();
@@ -82,17 +86,20 @@ namespace RoomForRent.Controllers
         // custom attribute created for implementing
         // POST-REDIRECT-GET pattern
         [ExportModelState]
-        public IActionResult EditDetails(LeaserEditModel leaserEditModel)
+        public async Task<IActionResult> EditDetails(LeaserEditModel leaserEditModel)
         {
             if(ModelState.IsValid)
             {
-                var leaser = this.leaserRepository
+                var leaser = await this.leaserRepository
                     .Leaser
                     .Where(x => x.ID == leaserEditModel.ID)
-                    .FirstOrDefault();
+                    .Include(x => x.AssetInfo)
+                    .FirstOrDefaultAsync();
                 if (leaser == null)
                     return NotFound();
                 MapLeaserEditModelToLeaserObject(leaserEditModel, leaser);
+
+                await this.leaserRepository.SaveChangesAsync();
 
                 return RedirectToAction("Index");
             }
@@ -109,26 +116,29 @@ namespace RoomForRent.Controllers
             leaser.AssetInfo.Type = leaserEditModel.AssetType;
         }
 
-        public IActionResult Details([FromRoute(Name ="id")] int leaserId)
+        public async Task<IActionResult> Details([FromRoute(Name ="id")] int leaserId)
         {
-            var leaser = this.leaserRepository
+            var leaser = await this.leaserRepository
                 .Leaser
-                .Where(x => x.ID == leaserId).FirstOrDefault();
+                .Where(x => x.ID == leaserId)
+                .Include(x => x.AssetInfo)
+                .FirstOrDefaultAsync();
 
             return View(leaser);
         }
 
-        public IActionResult History(int pageCount)
+        public async Task<IActionResult> History(int pageCount)
         {
             if (pageCount < 1)
                 pageCount = 1;
 
-            var pastLeasers = this.leaserRepository.
+            var pastLeasers = await this.leaserRepository.
                 Leaser
+                .Include(x => x.AssetInfo)
                 .Where(x => x.AssetInfo.IsLeased == true)
                 .Skip( (pageCount - 1) * ItemsPerPage)
                 .Take(ItemsPerPage)
-                .ToList();
+                .ToListAsync();
 
             var leaserHistoryViewModel = new LeaserHistoryViewModel
             {
@@ -145,13 +155,17 @@ namespace RoomForRent.Controllers
         }
 
         [HttpPost]
-        public IActionResult MarkAsLeased(int leaserId) {
-            var leaser = this.leaserRepository.Leaser
-                .Where(x => x.ID == leaserId).FirstOrDefault();
+        public async Task<IActionResult> MarkAsLeased(int leaserId) {
+            var leaser = await this.leaserRepository.Leaser
+                .Where(x => x.ID == leaserId)
+                .Include(x => x.AssetInfo)
+                .FirstOrDefaultAsync();
             if(leaser != null)
             {
                 leaser.AssetInfo.IsLeased = true;
                 leaser.AssetInfo.LeasedDate = DateTime.Now;
+
+                await this.leaserRepository.SaveChangesAsync();
             }
             return RedirectToAction("Index");
         }
@@ -167,13 +181,13 @@ namespace RoomForRent.Controllers
         // custom attribute created for implementing
         // POST-REDIRECT-GET pattern
         [ExportModelState]
-        public IActionResult Create(LeaserCreateModel leaserCreateModel)
+        public async Task<IActionResult> Create(LeaserCreateModel leaserCreateModel)
         {
             if (this.ModelState.IsValid)
             {
-                var id = this.leaserRepository.Leaser.Count() + 1;
-                Leaser leaser = CreateLeaserFromLeaserCreateModel(leaserCreateModel, id);
+                Leaser leaser = CreateLeaserFromLeaserCreateModel(leaserCreateModel);
                 this.leaserRepository.AddLeaser(leaser);
+                await this.leaserRepository.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
             else
@@ -182,11 +196,10 @@ namespace RoomForRent.Controllers
             }
         }
 
-        private static Leaser CreateLeaserFromLeaserCreateModel(LeaserCreateModel leaserCreateModel, int id)
+        private static Leaser CreateLeaserFromLeaserCreateModel(LeaserCreateModel leaserCreateModel)
         {
             return new Leaser
             {
-                ID = id,
                 Name = leaserCreateModel.Name,
                 Address = leaserCreateModel.Address,
                 ContactNumber = leaserCreateModel.ContactNumber,

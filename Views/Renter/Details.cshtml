@@ -5,21 +5,29 @@
 }
 else
 {
-    <div class="container">
-        <div class="row" >
-            Name: @Model.Name
-        </div>
-        <div class="row" >
-            Address: @Model.Address
-        </div>
-        <div class="row">
-            Contact: @Model.ContactNumber
-        </div>
-        <div class="row">
-            Seeking Asset: @Model.SeekedAsset.ToString()
-        </div>
-        <div class="row">
-            Description: @Model.Description
-        </div>
-    </div>
+<div class="container">
+    <h3>Renter Details: </h3>
+    <table class="table table-sm table-striped table-bordered">
+        <tr>
+            <td>Name: @Model.Name</td>
+        </tr>
+        <tr>
+            <td>Address: @Model.Address</td>
+        </tr>
+        <tr>
+            <td>Contact : @Model.ContactNumber</td>
+        </tr>
+        <tr>
+            <td>Seeking Asset: @Model.SeekedAsset.ToString()</td>
+        </tr>
+        <tr>
+            <td>Description: @Model.Description</td>
+        </tr>
+        @if (Model.Found.HasValue && Model.Found.Value == true)
+        {
+            <td>Rent Status:  Rented at @(Model.FoundDate.HasValue 
+                ? Model.FoundDate.Value.ToShortDateString() : "N/A" )</td>
+        }
+    </table>
+</div>
 }

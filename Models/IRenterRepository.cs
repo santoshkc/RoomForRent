@@ -7,8 +7,10 @@ namespace RoomForRent.Models
 {
     public interface IRenterRepository
     {
-        IEnumerable<Renter> Renters { get; }
+        IQueryable<Renter> Renters { get; }
 
         void AddRenter(Renter renter);
+
+        Task<bool> SaveChangesAsync();
     }
 }

@@ -33,17 +33,22 @@ namespace RoomForRent.Models
             };
         }
 
-        public IEnumerable<Renter> Renters
+        public IQueryable<Renter> Renters
         {
             get
             {
-                return renters;
+                return null;
             }
         }
 
         public void AddRenter(Renter renter)
         {
             this.renters.Add(renter);
+        }
+
+        public async Task<bool> SaveChangesAsync()
+        {
+            return true;
         }
 
         //public IEnumerable<Room> Rooms

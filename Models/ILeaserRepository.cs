@@ -7,8 +7,10 @@ namespace RoomForRent.Models
 {
     public interface ILeaserRepository
     {
-        IEnumerable<Leaser> Leaser { get; }
+        IQueryable<Leaser> Leaser { get; }
 
         void AddLeaser(Leaser roomLeaser);
+
+        Task<bool> SaveChangesAsync();
     }
 }

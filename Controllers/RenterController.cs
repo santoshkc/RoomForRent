@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RoomForRent.Infrastructure;
 using RoomForRent.Models;
 
@@ -17,44 +18,48 @@ namespace RoomForRent.Controllers
             this.renterRepository = renterRepository;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var renters = this.renterRepository
+            var renters = await this.renterRepository
                 .Renters
-                .Where(x => x.Found == null || x.Found == false);
+                .Where(x => x.Found == null || x.Found == false)
+                .ToListAsync()
+                ;
             return View(renters);
         }
 
-        public IActionResult History()
+        public async Task<IActionResult> History()
         {
-            var pastRenters = this.renterRepository
+            var pastRenters = await this.renterRepository
                 .Renters
-                .Where(x => x.Found == true);
+                .Where(x => x.Found == true)
+                .ToListAsync();
             return View(pastRenters);
         }
 
         [HttpPost]
-        public IActionResult MarkAsFound(int renterId)
+        public async Task<IActionResult> MarkAsFound(int renterId)
         {
-            var renter = this.renterRepository
+            var renter = await this.renterRepository
                 .Renters
                 .Where(x => x.ID == renterId)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if(renter != null)
             {
                 renter.Found = true;
                 renter.FoundDate = DateTime.Now;
+                await this.renterRepository.SaveChangesAsync();
             }
             return RedirectToAction("Index");
         }
 
-        public IActionResult Details([FromRoute(Name ="id")] int renterId)
+        public async Task<IActionResult> Details([FromRoute(Name ="id")] int renterId)
         {
-            var renter = this.renterRepository
+            var renter = await this.renterRepository
                 .Renters
                 .Where(x => x.ID == renterId)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
             return View(renter);
         }
 
@@ -70,13 +75,14 @@ namespace RoomForRent.Controllers
         // custom attributed created for implementing
         // POST-REDIRECT-GET pattern
         [ExportModelState]
-        public IActionResult Create(RenterCreateModel renterCreateModel)
+        public async Task<IActionResult> Create(RenterCreateModel renterCreateModel)
         {
             if(this.ModelState.IsValid)
             {
-                var id = this.renterRepository.Renters.Count() + 1;
-                Renter renter = CreateRenterObjectFromRenterCreateModel(renterCreateModel, id);
+                Renter renter = CreateRenterObjectFromRenterCreateModel(renterCreateModel);
                 this.renterRepository.AddRenter(renter);
+                await this.renterRepository.SaveChangesAsync();
+
                 return RedirectToAction("Index");
             }
             else
@@ -85,11 +91,10 @@ namespace RoomForRent.Controllers
             }
         }
 
-        private static Renter CreateRenterObjectFromRenterCreateModel(RenterCreateModel renterCreateModel, int id)
+        private static Renter CreateRenterObjectFromRenterCreateModel(RenterCreateModel renterCreateModel)
         {
             return new Renter
             {
-                ID = id,
                 Name = renterCreateModel.Name,
                 Address = renterCreateModel.Address,
                 ContactNumber = renterCreateModel.Address,
@@ -99,18 +104,18 @@ namespace RoomForRent.Controllers
         }
 
         [ImportModelState]
-        public IActionResult EditDetails([FromRoute(Name = "id")] int renterId)
+        public async Task<IActionResult> EditDetails([FromRoute(Name = "id")] int renterId)
         {
-            var renter = this.renterRepository
+            var renter = await this.renterRepository
                 .Renters
                 .Where(x => x.ID == renterId)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             // will use auto mapper later
             // for now manual mapping
             if(renter != null)
             {
-                RenterEditModel renterEditModel = MapRenterObjectToRenterEditModel(renterId, renter);
+                RenterEditModel renterEditModel = MapRenterObjectToRenterEditModel(renter);
                 return View(renterEditModel);
             }
             else
@@ -119,11 +124,10 @@ namespace RoomForRent.Controllers
             }
         }
 
-        private static RenterEditModel MapRenterObjectToRenterEditModel(int renterId, Renter renter)
+        private static RenterEditModel MapRenterObjectToRenterEditModel(Renter renter)
         {
             return new RenterEditModel
             {
-                ID = renterId,
                 Name = renter.Name,
                 ContactNumber = renter.ContactNumber,
                 Address = renter.Address,
@@ -134,21 +138,23 @@ namespace RoomForRent.Controllers
 
         [HttpPost]
         [ExportModelState]
-        public IActionResult EditDetails(RenterEditModel renterEditModel)
+        public async Task<IActionResult> EditDetails(RenterEditModel renterEditModel)
         {
             if (ModelState.IsValid)
             {
-                var renterModel = this.
+                var renterModel = await this.
                     renterRepository
                     .Renters
                     .Where(x => x.ID == renterEditModel.ID)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
                 if (renterModel == null)
                 {
                     return NotFound();
                 }
 
                 MapRenterEditModelToRenterObject(renterEditModel, renterModel);
+
+                await this.renterRepository.SaveChangesAsync();
 
                 return RedirectToAction("Index");
             }
@@ -161,7 +167,7 @@ namespace RoomForRent.Controllers
             renterModel.Address = renterEditModel.Address;
             renterModel.ContactNumber = renterEditModel.ContactNumber;
             renterModel.Description = renterEditModel.Description;
-            renterEditModel.SeekedAsset = renterEditModel.SeekedAsset;
+            renterModel.SeekedAsset = renterEditModel.SeekedAsset;
         }
     }
 }
