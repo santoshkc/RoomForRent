@@ -1,11 +1,75 @@
-﻿<div class="container-fluid">
+﻿@model IEnumerable<RenterLeaserTransactionDto>
+
+    <script type="text/javascript">
+            function modifyHiddenFieldOfForm(sourceId, destinationId) {
+                    var selectElement = document.getElementById(sourceId);
+                    var selectElementValue = selectElement.options[selectElement.selectedIndex].value;
+                    var hiddenElement =  document.getElementById(destinationId);
+                    hiddenElement.value = selectElementValue;
+                }
+    </script>
+
+    <div class="bg-dark text-white text-center p-2">
+        <span class="navbar-brand ml-2">Room/Flat/House for Lease/Rent</span>
+        <a class="btn btn-light float-right m-1" asp-action="History">Show All</a>
+        <a class="btn btn-light float-right m-1" asp-action="Create">New Transaction</a>
+    </div>
     <div class="row">
-        <div class="col-7">
-            <h3 class="text-left">Room/Flat/House for Lease/Rent</h3>
-            <p>
-                Click Renters and Leasers for basic functionality.
-                Will Add more content later.
-            </p>
+        <h2 class="m-2">Pending Transactions</h2>
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Leaser</th>
+                        <th>Renter</th>
+                        <th>Status</th>
+                        <th>AddedOn</th>
+                        <th>LastUpdatedOn</th>
+                        <th />
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        @foreach (var transaction in Model)
+                        {
+                            <td>@transaction.LeaserName</td>
+                            <td>@transaction.RenterName</td>
+                            <td>
+                                <select id = "tid-@transaction.Id" asp-for="@transaction.TransactionStatus">
+                                    @foreach (var status in Enum.GetNames(typeof(RenterLeaserTransactionStatus)))
+                                    {
+                                        if (status == transaction.TransactionStatus.ToString())
+                                        {
+                                            <option value="@status" selected>@status</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@status">@status</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td>@transaction.CreatedDate.ToShortDateString()</td>
+                            <td>@transaction.LastModifiedDate.ToShortDateString()</td>
+                            <td></td>
+                            <td>
+                                <form id="@transaction.Id" asp-action="UpdateTransactionStatus" asp-route-id="@transaction.Id" method="post">
+                                    <input id="tstatus-id-@transaction.Id" type="hidden" name="transactionStatus" value="@transaction.TransactionStatus" />
+                                    <button type="submit" onclick="return function() {
+                                            let sourceId = 'tid-@transaction.Id';
+                                            let destinationId = 'tstatus-id-@transaction.Id';
+                                            modifyHiddenFieldOfForm(sourceId,destinationId)
+                                        }()"
+                                    >Update</button >
+                                </form>
+                            </td>
+                        }
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
+
+    

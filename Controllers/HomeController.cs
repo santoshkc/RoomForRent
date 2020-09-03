@@ -9,17 +9,32 @@ namespace RoomForRent.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IRenterRepository roomRepository;
+        private readonly ITransactionRepository transactionRepository;
 
-        public HomeController(IRenterRepository roomRepository)
+        private readonly DataAccessLayer.RenterLeaserTransactionDAL renterLeaserTransactionDAL = null;
+
+        public HomeController(ITransactionRepository transactionRepository)
         {
-            this.roomRepository = roomRepository;
+            this.transactionRepository = transactionRepository;
+
+            renterLeaserTransactionDAL = new DataAccessLayer.RenterLeaserTransactionDAL(transactionRepository);
         }
 
         public IActionResult Index()
         {
-            var roomsAvailable = this.roomRepository.Renters;
-            return View(roomsAvailable);
+            var transactions = renterLeaserTransactionDAL.GetTransactions();
+            return View(transactions);
+        }
+
+        [HttpPost]
+        public IActionResult UpdateTransactionStatus([FromRoute(Name ="id")] int transactionId, [FromForm(Name = "transactionStatus")] RenterLeaserTransactionStatus transactionStatus)
+        {
+           var result = this.renterLeaserTransactionDAL.UpdateTransaction(transactionId, transactionStatus);
+            if(result == false)
+            {
+                return NotFound();
+            }
+            return RedirectToAction(nameof(Index));
         }
     }
 }

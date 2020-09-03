@@ -36,6 +36,7 @@ namespace RoomForRent
 
             services.AddScoped<ILeaserRepository, EfLeaserRepository>();
             services.AddScoped<IRenterRepository, EfRenterRepository>();
+            services.AddSingleton<ITransactionRepository, InMemoryLeaserRenterTransactionRepository > ();
 
             //services.AddSingleton<IRenterRepository, InMemoryRenterRepository>();
             //services.AddSingleton<ILeaserRepository, InMemoryRoomLeaserRepository>();
