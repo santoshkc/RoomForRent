@@ -7,8 +7,14 @@ namespace RoomForRent.Models
 {
     public class InMemoryLeaserRenterTransactionRepository : ITransactionRepository
     {
+        private readonly IRenterRepository renterRepository;
+
+        private readonly ILeaserRepository leaserRepository;
+
         private List<RenterLeaserTransaction> renterLeaserTransactions = null;
-        public InMemoryLeaserRenterTransactionRepository()
+
+        public InMemoryLeaserRenterTransactionRepository(IRenterRepository renterRepository,
+            ILeaserRepository leaserRepository)
         {
             renterLeaserTransactions = new List<RenterLeaserTransaction>
             {
@@ -49,6 +55,10 @@ namespace RoomForRent.Models
                     TransactionStatus = RenterLeaserTransactionStatus.Pending,
                 }
             };
+
+            this.renterRepository = renterRepository;
+
+            this.leaserRepository = leaserRepository;
         }
 
         public IEnumerable<RenterLeaserTransaction> Transactions
@@ -58,6 +68,11 @@ namespace RoomForRent.Models
                 return renterLeaserTransactions;
             }
         }
+
+        public IRenterRepository RenterRepository => renterRepository;
+
+        public ILeaserRepository LeaserRepository => leaserRepository;
+
 
         public void AddTransaction(RenterLeaserTransaction renterLeaserTransaction)
         {

@@ -15,5 +15,7 @@ namespace RoomForRent.Models
         public DbSet<Renter> Renters { get; set; }
         
         public DbSet<Leaser> Leasers { get; set; }
+
+        public DbSet<RenterLeaserTransaction> Transactions { get; set; }
     }
 }

@@ -1,0 +1,51 @@
+﻿@model LeaserRentersLinkDto
+
+<div>
+    <h3>Link Leaser to Renter</h3>
+</div>
+
+@if (Model.Leaser == null || Model.Renters == null || Model.Renters.Count() == 0) {
+    <div>
+        <h4>No Information Available for Mapping.</h4>
+    </div>
+}
+else {
+    <div>
+        <table class="table table-bordered table-striped table-sm">
+            <thead>
+                <tr>
+                    Leaser Details
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Name: @Model.Leaser.Name</td>
+                </tr>
+                <tr>
+                    <td>Address: @Model.Leaser.Address</td>
+                </tr>
+                <tr>
+                    <td>Contact: @Model.Leaser.ContactNumber</td>
+                </tr>
+                <tr>
+                    <td>Description: @Model.Leaser.AssetInfo.Description</td>
+                </tr>
+                <tr>
+                    <td>
+                        <form action = "LinkToRenter" method="post">
+                            <input type="hidden" name="leaserId" value="@Model.Leaser.ID" />
+                            <label>Available Renters: </label>
+                            <select name="renterId">
+                                @foreach (var renterInfo in Model.Renters)
+                                {
+                                    <option value="@renterInfo.ID">@renterInfo.Name (@renterInfo.Address)</option>
+                                }
+                            </select>
+                            <button type="submit">Link Renter</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}

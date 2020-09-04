@@ -1,4 +1,6 @@
-﻿using RoomForRent.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using RoomForRent.Models;
+using RoomForRent.Models.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,172 @@ namespace RoomForRent.DataAccessLayer
         public RenterLeaserTransactionDAL(ITransactionRepository transactionRepository)
         {
             this.transactionRepository = transactionRepository;
+        }
+
+        internal RenterLeasersLinkDto GetRenterLeasersLinkDto(int renterId)
+        {
+            var renter = this.transactionRepository
+                            .RenterRepository
+                            .Renters
+                            .Where(x => x.ID == renterId)
+                            .FirstOrDefault();
+
+            var leasers = this.transactionRepository
+                        .LeaserRepository
+                        .Leaser
+                        .Include(x => x.AssetInfo)
+                        .Where(x => x.AssetInfo.IsLeased == null ||
+                        x.AssetInfo.IsLeased == false);
+
+            var linkDto = new RenterLeasersLinkDto
+            {
+                Leasers = leasers,
+                Renter = renter,
+            };
+            return linkDto;
+        }
+
+        internal LeaserRentersLinkDto GetLeaserRentersLinkDto(int leaserId)
+        {
+            var leaser = this.transactionRepository.
+                                LeaserRepository
+                                .Leaser
+                                .Where(x => x.ID == leaserId)
+                                .Include(x => x.AssetInfo)
+                                .FirstOrDefault();
+
+            var renters = this.transactionRepository.
+                    RenterRepository
+                    .Renters
+                    .Where(x => x.Found == null
+                        || x.Found.Value == false)
+                    .ToList();
+
+            var linkDto = new LeaserRentersLinkDto
+            {
+                Leaser = leaser,
+                Renters = renters,
+            };
+            return linkDto;
+        }
+
+        internal bool LinkRenterAndLeaser(int leaserId,int renterId)
+        {
+            var leaser = this.transactionRepository
+                .LeaserRepository.Leaser
+                .Where(x => x.ID == leaserId)
+                .SingleOrDefault();
+
+            if(leaser == null)
+            {
+                return false;
+            }
+
+            var renter = this.transactionRepository
+                .RenterRepository.Renters
+                .Where(x => x.ID == renterId)
+                .SingleOrDefault();
+
+            if(renter == null)
+            {
+                return false;
+            }
+
+            var transaction = new RenterLeaserTransaction
+            {
+                LeaserId = leaserId,
+                RenterId = renterId,
+                CreatedDate = DateTime.Now,
+                LastModifiedDate = DateTime.Now,
+                TransactionStatus = RenterLeaserTransactionStatus.Pending,
+            };
+
+            this.transactionRepository.AddTransaction(transaction);
+            return this.transactionRepository.SaveChangesAsync();
+        }
+
+        internal RenterLeaserTransactionCreateDto GetDataForTransactionLink(int? leaserId, int? renterId)
+        {
+            var rentersInfo = new List<RenterTransactionInfo>();
+            if (renterId.HasValue)
+            {
+                var renterInfo = this.transactionRepository
+                    .RenterRepository
+                    .Renters
+                    .Where(x => x.ID == renterId.Value)
+                    .SingleOrDefault();
+
+                if (renterInfo != null)
+                {
+                    var renterTransactionInfo = new RenterTransactionInfo
+                    {
+                        RenterId = (int)renterInfo.ID,
+                        Name = renterInfo.Name,
+                        Address = renterInfo.Address,
+                    };
+                    rentersInfo.Add(renterTransactionInfo);
+                }
+            }
+            else
+            {
+                var renters = this.transactionRepository
+                        .RenterRepository
+                        .Renters
+                        .Where(x => x.Found == null || x.Found.Value == false)
+                        .Select(x => new RenterTransactionInfo
+                            {
+                                RenterId = (int)x.ID,
+                                Name = x.Name,
+                                Address = x.Address,
+                            }
+                        ).ToList();
+
+                rentersInfo.AddRange(renters);
+            }
+
+            var leasersInfo = new List<LeaserTransactionInfo>();
+            if (leaserId.HasValue)
+            {
+                var leaserInfo = this.transactionRepository
+                    .LeaserRepository
+                    .Leaser
+                    .Where(x => x.ID == leaserId.Value)
+                    .SingleOrDefault();
+
+                if (leaserInfo != null)
+                {
+                    var leaserTransactionInfo = new LeaserTransactionInfo
+                        {
+                            LeaserId = leaserInfo.ID,
+                            Address = leaserInfo.Address,
+                            Name = leaserInfo.Name,
+                        };
+                    leasersInfo.Add(leaserTransactionInfo);
+                }
+            }
+            else
+            {
+                var leasers = this.transactionRepository
+                    .LeaserRepository
+                    .Leaser
+                    .Include(x => x.AssetInfo)
+                    .Where( x => x.AssetInfo.IsLeased == null || 
+                    x.AssetInfo.IsLeased == false)
+                    .Select(x => new LeaserTransactionInfo
+                        {
+                            LeaserId = x.ID,
+                            Name = x.Name,
+                            Address = x.Address,
+                        }).ToList();
+
+                leasersInfo.AddRange(leasers);
+            }
+
+            return new RenterLeaserTransactionCreateDto
+            {
+                Leasers = leasersInfo,
+                Renters = rentersInfo,
+            };
         }
 
         public RenterLeaserTransactionDto GetTransaction(int transactionId)
@@ -49,9 +217,12 @@ namespace RoomForRent.DataAccessLayer
                 transaction.TransactionStatus = renterLeaserTransactionStatus;
                 transaction.LastModifiedDate = DateTime.Now;
 
+                this.transactionRepository.ModifyTransaction(transaction);
+
+                this.transactionRepository.SaveChangesAsync();
+
                 return true;
             }
-
             return false;
         }
 
@@ -59,14 +230,19 @@ namespace RoomForRent.DataAccessLayer
         {
             return this.transactionRepository
                 .Transactions
+                .Where(x => x.TransactionStatus == RenterLeaserTransactionStatus.Pending)
                 .Select(x => new RenterLeaserTransactionDto
                 {
                     Id = x.ID,
                     CreatedDate = x.CreatedDate,
                     LastModifiedDate = x.LastModifiedDate,
                     TransactionStatus = x.TransactionStatus,
-                    LeaserName = $"Leaser{x.ID}" ,
-                    RenterName = $"Renter{x.ID}",
+                    LeaserName =  this.transactionRepository
+                    .LeaserRepository.Leaser.
+                    Where(y => y.ID == x.LeaserId).FirstOrDefault()?.Name ?? "N/A",
+                    RenterName = this.transactionRepository
+                    .RenterRepository.Renters.
+                    Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
                 });
         }
     }

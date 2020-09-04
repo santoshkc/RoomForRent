@@ -1,0 +1,44 @@
+﻿@model RenterLeaserTransactionCreateDto
+
+<h2>Link Renter and Leaser</h2>
+
+@if (Model.Leasers.Count() == 0 || Model.Renters.Count() == 0)
+{
+    <div>
+        <h4>Data Missing for Linking Renter/Leaser.</h4>
+    </div>
+}
+else
+{
+    <div class="container-fluid">
+        <table class="table table-sm table-bordered table-striped" >
+            <thead>
+                <tr>
+                    <th>Leaser</th>
+                    <th>Renter</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <select>
+                            @foreach (var leaser in Model.Leasers)
+                            {
+                                <option value="@leaser.LeaserId">@leaser.Name</option>
+                            }
+                        </select>
+                    </td>
+
+                    <td>
+                        <select>
+                            @foreach (var renter in Model.Renters)
+                            {
+                                <option value="@renter.RenterId">@renter.Name</option>
+                            }
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}

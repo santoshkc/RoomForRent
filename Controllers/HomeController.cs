@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using RoomForRent.DataAccessLayer;
 using RoomForRent.Models;
+using RoomForRent.Models.ViewModel;
 
 namespace RoomForRent.Controllers
 {
@@ -11,13 +14,12 @@ namespace RoomForRent.Controllers
     {
         private readonly ITransactionRepository transactionRepository;
 
-        private readonly DataAccessLayer.RenterLeaserTransactionDAL renterLeaserTransactionDAL = null;
+        private readonly RenterLeaserTransactionDAL renterLeaserTransactionDAL = null;
 
         public HomeController(ITransactionRepository transactionRepository)
         {
             this.transactionRepository = transactionRepository;
-
-            renterLeaserTransactionDAL = new DataAccessLayer.RenterLeaserTransactionDAL(transactionRepository);
+            renterLeaserTransactionDAL = new RenterLeaserTransactionDAL(transactionRepository);
         }
 
         public IActionResult Index()
@@ -26,15 +28,63 @@ namespace RoomForRent.Controllers
             return View(transactions);
         }
 
-        [HttpPost]
-        public IActionResult UpdateTransactionStatus([FromRoute(Name ="id")] int transactionId, [FromForm(Name = "transactionStatus")] RenterLeaserTransactionStatus transactionStatus)
+        public IActionResult LinkToLeaser([FromRoute(Name ="id")] int renterId)
         {
-           var result = this.renterLeaserTransactionDAL.UpdateTransaction(transactionId, transactionStatus);
+            RenterLeasersLinkDto linkDto = renterLeaserTransactionDAL.GetRenterLeasersLinkDto(renterId);
+            return View(linkDto);
+        }
+
+        [HttpPost]
+        public IActionResult LinkToLeaser([FromForm(Name = "leaserId")] int leaserId, 
+                [FromForm(Name = "renterId")] int renterId)
+        {
+            var result = this.renterLeaserTransactionDAL
+                .LinkRenterAndLeaser(leaserId, renterId);
+
+            if (result == true)
+                return RedirectToAction(nameof(Index));
+
+            return NotFound();
+        }
+
+        public IActionResult LinkToRenter([FromRoute(Name ="id")] int leaserId)
+        {
+            LeaserRentersLinkDto linkDto = renterLeaserTransactionDAL.GetLeaserRentersLinkDto(leaserId);
+            return View(linkDto);
+        }
+
+        [HttpPost]
+        public IActionResult LinkToRenter([FromForm(Name = "leaserId")] int leaserId, [FromForm(Name ="renterId")] int renterId)
+        {
+            var result = this.renterLeaserTransactionDAL
+                .LinkRenterAndLeaser(leaserId, renterId);
+
+            if(result == true)
+                return RedirectToAction(nameof(Index));
+
+            return NotFound();
+        }
+
+        [HttpPost]
+        public IActionResult UpdateTransactionStatus([FromRoute(Name ="id")] int transactionId, 
+                [FromForm(Name = "transactionStatus")] RenterLeaserTransactionStatus transactionStatus)
+        {
+            var result = this.renterLeaserTransactionDAL
+                .UpdateTransaction(transactionId, transactionStatus);
             if(result == false)
             {
                 return NotFound();
             }
+
             return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult CreateTransaction(int? leaserId, int? renterId )
+        {
+            var renterLeaserTransactionCreateDto = 
+                renterLeaserTransactionDAL.GetDataForTransactionLink(leaserId, renterId);
+
+            return View(renterLeaserTransactionCreateDto);
         }
     }
 }

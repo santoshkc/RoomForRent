@@ -7,6 +7,10 @@ namespace RoomForRent.Models
 {
     public interface ITransactionRepository
     {
+        IRenterRepository RenterRepository { get; }
+
+        ILeaserRepository LeaserRepository { get; }
+
         IEnumerable<RenterLeaserTransaction> Transactions { get; }
 
         void AddTransaction(RenterLeaserTransaction renterLeaserTransaction);

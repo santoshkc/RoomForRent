@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RoomForRent.Models;
 
 namespace RoomForRent.Migrations
 {
     [DbContext(typeof(RoomForRentDbContext))]
-    partial class RoomForRentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200904080230_RenterLeaserTransaction")]
+    partial class RenterLeaserTransaction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
