@@ -16,28 +16,34 @@ else
                 <tr>
                     <th>Leaser</th>
                     <th>Renter</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <select>
-                            @foreach (var leaser in Model.Leasers)
-                            {
-                                <option value="@leaser.LeaserId">@leaser.Name</option>
-                            }
-                        </select>
-                    </td>
+                <form action="CreateTransaction" method="post">
+                    <tr>
+                        <td>
+                            <select name="leaserId">
+                                @foreach (var leaser in Model.Leasers)
+                                {
+                                    <option value="@leaser.LeaserId">@leaser.Name (@leaser.Address)</option>
+                                }
+                            </select>
+                        </td>
 
-                    <td>
-                        <select>
-                            @foreach (var renter in Model.Renters)
-                            {
-                                <option value="@renter.RenterId">@renter.Name</option>
-                            }
-                        </select>
-                    </td>
-                </tr>
+                        <td>
+                            <select name="renterId">
+                                @foreach (var renter in Model.Renters)
+                                {
+                                    <option value="@renter.RenterId">@renter.Name (@renter.Address)</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <button type="submit" class="btn btn-dark">Link</button>
+                        </td>
+                    </tr>
+                </form>
             </tbody>
         </table>
     </div>

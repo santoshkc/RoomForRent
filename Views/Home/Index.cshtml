@@ -31,13 +31,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        @foreach (var transaction in Model)
-                        {
+                    @foreach (var transaction in Model)
+                    {
+                        <tr>
+
                             <td>@transaction.LeaserName</td>
                             <td>@transaction.RenterName</td>
                             <td>
-                                <select id = "tid-@transaction.Id" asp-for="@transaction.TransactionStatus">
+                                <select id="tid-@transaction.Id" asp-for="@transaction.TransactionStatus">
                                     @foreach (var status in Enum.GetNames(typeof(RenterLeaserTransactionStatus)))
                                     {
                                         if (status == transaction.TransactionStatus.ToString())
@@ -61,12 +62,13 @@
                                             let sourceId = 'tid-@transaction.Id';
                                             let destinationId = 'tstatus-id-@transaction.Id';
                                             modifyHiddenFieldOfForm(sourceId,destinationId)
-                                        }()"
-                                    >Update</button >
+                                        }()" class="btn btn-dark">
+                                        Update
+                                    </button>
                                 </form>
                             </td>
-                        }
-                    </tr>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>

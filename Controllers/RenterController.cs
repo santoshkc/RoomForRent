@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RoomForRent.Infrastructure;
 using RoomForRent.Models;
+using RoomForRent.Models.ViewModel;
 
 namespace RoomForRent.Controllers
 {
@@ -18,14 +19,33 @@ namespace RoomForRent.Controllers
             this.renterRepository = renterRepository;
         }
 
-        public async Task<IActionResult> Index()
+        private static int ItemsPerPage = 5;
+
+        public async Task<IActionResult> Index(int pageCount)
         {
+            if (pageCount <= 1)
+                pageCount = 1;
+
             var renters = await this.renterRepository
                 .Renters
                 .Where(x => x.Found == null || x.Found == false)
-                .ToListAsync()
-                ;
-            return View(renters);
+                .Skip((pageCount - 1) * ItemsPerPage)
+                .Take(ItemsPerPage)
+                .ToListAsync();
+
+            var renterViewInfo = new RenterListViewModel
+            {
+                Renters = renters,
+                PagingInfo = new PagingInfo
+                {
+                    CurrentPage = pageCount,
+                    ItemsPerPage = ItemsPerPage,
+                    TotalItems = await this.renterRepository.Renters
+                                .CountAsync(x => x.Found == null
+                                || x.Found.Value == false)
+                }
+            };
+            return View(renterViewInfo);
         }
 
         public async Task<IActionResult> History()

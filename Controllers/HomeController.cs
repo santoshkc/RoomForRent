@@ -86,5 +86,17 @@ namespace RoomForRent.Controllers
 
             return View(renterLeaserTransactionCreateDto);
         }
+
+        [HttpPost]
+        public IActionResult CreateTransaction(int leaserId, int renterId)
+        {
+            var result = this.renterLeaserTransactionDAL
+                .LinkRenterAndLeaser(leaserId, renterId);
+
+            if (result == true)
+                return RedirectToAction(nameof(Index));
+
+            return NotFound();
+        }
     }
 }
