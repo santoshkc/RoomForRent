@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using RoomForRent.Infrastructure;
 using RoomForRent.Models;
 using RoomForRent.Models.ViewModel;
+using RoomForRent.Repositories;
+using RoomForRent.Services.RenterServiceProvider;
 
 namespace RoomForRent.Controllers
 {
@@ -14,9 +16,13 @@ namespace RoomForRent.Controllers
     {
         private readonly IRenterRepository renterRepository;
 
+        private readonly RenterService renterService = null;
+
         public RenterController(IRenterRepository renterRepository)
         {
             this.renterRepository = renterRepository;
+            renterService = new RenterService(renterRepository);
+
         }
 
         private static int ItemsPerPage = 5;
@@ -26,60 +32,31 @@ namespace RoomForRent.Controllers
             if (pageCount <= 1)
                 pageCount = 1;
 
-            var renters = await this.renterRepository
-                .Renters
-                .Where(x => x.Found == null || x.Found == false)
-                .Skip((pageCount - 1) * ItemsPerPage)
-                .Take(ItemsPerPage)
-                .ToListAsync();
+            var renterViewInfo = await renterService.GetRenterList(pageCount,ItemsPerPage);
 
-            var renterViewInfo = new RenterListViewModel
-            {
-                Renters = renters,
-                PagingInfo = new PagingInfo
-                {
-                    CurrentPage = pageCount,
-                    ItemsPerPage = ItemsPerPage,
-                    TotalItems = await this.renterRepository.Renters
-                                .CountAsync(x => x.Found == null
-                                || x.Found.Value == false)
-                }
-            };
             return View(renterViewInfo);
         }
 
         public async Task<IActionResult> History()
         {
-            var pastRenters = await this.renterRepository
-                .Renters
-                .Where(x => x.Found == true)
-                .ToListAsync();
+            var pastRenters = await renterService.GetHistory();
+
             return View(pastRenters);
         }
 
         [HttpPost]
         public async Task<IActionResult> MarkAsFound(int renterId)
         {
-            var renter = await this.renterRepository
-                .Renters
-                .Where(x => x.ID == renterId)
-                .FirstOrDefaultAsync();
-
-            if(renter != null)
-            {
-                renter.Found = true;
-                renter.FoundDate = DateTime.Now;
-                await this.renterRepository.SaveChangesAsync();
-            }
-            return RedirectToAction("Index");
+            var success = await renterService.MarkAsFound(renterId);
+            if (success)
+                return RedirectToAction("Index");
+            else
+                return BadRequest();
         }
 
         public async Task<IActionResult> Details([FromRoute(Name ="id")] int renterId)
         {
-            var renter = await this.renterRepository
-                .Renters
-                .Where(x => x.ID == renterId)
-                .FirstOrDefaultAsync();
+            var renter = await renterService.GetRenterDetails(renterId);
             return View(renter);
         }
 
@@ -92,16 +69,14 @@ namespace RoomForRent.Controllers
         }
 
         [HttpPost]
-        // custom attributed created for implementing
+        // custom attribute created for implementing
         // POST-REDIRECT-GET pattern
         [ExportModelState]
         public async Task<IActionResult> Create(RenterCreateModel renterCreateModel)
         {
             if(this.ModelState.IsValid)
             {
-                Renter renter = CreateRenterObjectFromRenterCreateModel(renterCreateModel);
-                this.renterRepository.AddRenter(renter);
-                await this.renterRepository.SaveChangesAsync();
+                var result = await renterService.CreateRenter(renterCreateModel);
 
                 return RedirectToAction("Index");
             }
@@ -109,18 +84,6 @@ namespace RoomForRent.Controllers
             {
                 return RedirectToAction("Create");
             }
-        }
-
-        private static Renter CreateRenterObjectFromRenterCreateModel(RenterCreateModel renterCreateModel)
-        {
-            return new Renter
-            {
-                Name = renterCreateModel.Name,
-                Address = renterCreateModel.Address,
-                ContactNumber = renterCreateModel.Address,
-                Description = renterCreateModel.Description,
-                SeekedAsset = renterCreateModel.SeekedAsset,
-            };
         }
 
         [ImportModelState]
@@ -131,29 +94,12 @@ namespace RoomForRent.Controllers
                 .Where(x => x.ID == renterId)
                 .FirstOrDefaultAsync();
 
-            // will use auto mapper later
-            // for now manual mapping
-            if(renter != null)
-            {
-                RenterEditModel renterEditModel = MapRenterObjectToRenterEditModel(renter);
-                return View(renterEditModel);
-            }
-            else
-            {
-                return NotFound();
-            }
-        }
+            var renterEditModel = await renterService.GetRenterEditDetails(renterId);
 
-        private static RenterEditModel MapRenterObjectToRenterEditModel(Renter renter)
-        {
-            return new RenterEditModel
-            {
-                Name = renter.Name,
-                ContactNumber = renter.ContactNumber,
-                Address = renter.Address,
-                Description = renter.Description,
-                SeekedAsset = renter.SeekedAsset,
-            };
+            if(renterEditModel != null)
+                return View(renterEditModel);
+            else
+                return NotFound();
         }
 
         [HttpPost]
@@ -162,32 +108,17 @@ namespace RoomForRent.Controllers
         {
             if (ModelState.IsValid)
             {
-                var renterModel = await this.
-                    renterRepository
-                    .Renters
-                    .Where(x => x.ID == renterEditModel.ID)
-                    .FirstOrDefaultAsync();
-                if (renterModel == null)
-                {
-                    return NotFound();
-                }
+                var result = await renterService.EditRenterDetails(renterEditModel);
 
-                MapRenterEditModelToRenterObject(renterEditModel, renterModel);
-
-                await this.renterRepository.SaveChangesAsync();
-
-                return RedirectToAction("Index");
+                if (result == true)
+                    return RedirectToAction("Index");
+                else
+                    return BadRequest();
             }
+
             return RedirectToAction("EditDetails", new { id = renterEditModel.ID });
         }
 
-        private static void MapRenterEditModelToRenterObject(RenterEditModel renterEditModel, Renter renterModel)
-        {
-            renterModel.Name = renterEditModel.Name;
-            renterModel.Address = renterEditModel.Address;
-            renterModel.ContactNumber = renterEditModel.ContactNumber;
-            renterModel.Description = renterEditModel.Description;
-            renterModel.SeekedAsset = renterEditModel.SeekedAsset;
-        }
+        
     }
 }

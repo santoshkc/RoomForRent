@@ -1,9 +1,10 @@
-﻿using System;
+﻿using RoomForRent.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RoomForRent.Models
+namespace RoomForRent.Repositories
 {
     public interface IRenterRepository
     {

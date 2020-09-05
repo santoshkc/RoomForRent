@@ -1,10 +1,13 @@
-﻿using System;
+﻿using RoomForRent.Models;
+using RoomForRent.Persistence.Contexts;
+using RoomForRent.Repositories;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RoomForRent.Models
-{
+namespace RoomForRent.Repositories 
+{ 
     public class EfRenterLeaserTransactionRepository : ITransactionRepository
     {
         private readonly RoomForRentDbContext roomForRentDbContext;
@@ -32,11 +35,13 @@ namespace RoomForRent.Models
             this.roomForRentDbContext.Transactions.Add(renterLeaserTransaction);
         }
 
+
         public void ModifyTransaction(RenterLeaserTransaction renterLeaserTransaction)
         {
             this.roomForRentDbContext.
                 Transactions.Update(renterLeaserTransaction);
         }
+
 
         // TODO: make real async later.
         public bool SaveChangesAsync()

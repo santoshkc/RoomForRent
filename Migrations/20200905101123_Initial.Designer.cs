@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using RoomForRent.Models;
+using RoomForRent.Persistence.Contexts;
 
 namespace RoomForRent.Migrations
 {
     [DbContext(typeof(RoomForRentDbContext))]
-    [Migration("20200904080230_RenterLeaserTransaction")]
-    partial class RenterLeaserTransaction
+    [Migration("20200905101123_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

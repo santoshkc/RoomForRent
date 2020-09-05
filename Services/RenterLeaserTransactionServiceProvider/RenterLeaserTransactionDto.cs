@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RoomForRent.DataAccessLayer
+namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
 {
     public class RenterLeaserTransactionDto
     {

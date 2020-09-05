@@ -1,18 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RoomForRent.Models;
 using RoomForRent.Models.ViewModel;
+using RoomForRent.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RoomForRent.DataAccessLayer
+namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
 {
-    public class RenterLeaserTransactionDAL
+    public class RenterLeaserTransactionService
     {
         private readonly ITransactionRepository transactionRepository;
 
-        public RenterLeaserTransactionDAL(ITransactionRepository transactionRepository)
+        public RenterLeaserTransactionService(ITransactionRepository transactionRepository)
         {
             this.transactionRepository = transactionRepository;
         }

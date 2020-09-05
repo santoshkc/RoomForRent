@@ -8,6 +8,8 @@ using RoomForRent.Infrastructure;
 using RoomForRent.Models;
 using RoomForRent.Models.LeaserModels;
 using RoomForRent.Models.ViewModel;
+using RoomForRent.Repositories;
+using RoomForRent.Services.LeaserServiceProvider;
 
 namespace RoomForRent.Controllers
 {
@@ -15,8 +17,10 @@ namespace RoomForRent.Controllers
     {
         private readonly ILeaserRepository leaserRepository;
 
+        private readonly LeaserService leaserService = null;
+
         public LeaserController(ILeaserRepository roomLeaserRepository) {
-            this.leaserRepository = roomLeaserRepository;
+            leaserService = new LeaserService(roomLeaserRepository);
         }
         
         private static int ItemsPerPage = 5;
@@ -25,14 +29,7 @@ namespace RoomForRent.Controllers
             if (pageCount <= 1)
                 pageCount = 1;
 
-            var leasers = await this.leaserRepository
-                .Leaser
-                .Include( x => x.AssetInfo)
-                .Where(x => x.AssetInfo.IsLeased == null 
-                || x.AssetInfo.IsLeased== false)
-                .Skip( (pageCount-1) * ItemsPerPage)
-                .Take(ItemsPerPage)
-                .ToListAsync();
+            var (leasers, totalActiveLeasers) = await this.leaserService.GetLeasers(pageCount,ItemsPerPage);
 
             var leaserViewInfo = new LeaserListViewModel
             {
@@ -41,10 +38,7 @@ namespace RoomForRent.Controllers
                 {
                     CurrentPage = pageCount,
                     ItemsPerPage = LeaserController.ItemsPerPage,
-                    TotalItems = await this.leaserRepository.Leaser
-                                 .Include(x => x.AssetInfo)
-                                .CountAsync(x => x.AssetInfo.IsLeased == null
-                                || x.AssetInfo.IsLeased == false)
+                    TotalItems = totalActiveLeasers
                 }
             };
             return View(leaserViewInfo);
@@ -55,32 +49,15 @@ namespace RoomForRent.Controllers
         [ImportModelState]
         public async Task<IActionResult> EditDetails([FromRoute(Name = "id")] int leaserId)
         {
-            var leaser = await this.leaserRepository
-                .Leaser
-                .Where(x => x.ID == leaserId)
-                .Include(x => x.AssetInfo)
-                .FirstOrDefaultAsync();
+            var leaserEditDetails = await this.leaserService.GetLeaserEditDetails(leaserId);
 
-            if (leaser == null)
+            if(leaserEditDetails == null)
                 return NotFound();
 
-            LeaserEditModel leaserEditModel = CreateLeaserEditModelFromLeaser(leaser);
-            return View(leaserEditModel);
+            return View(leaserEditDetails);
         }
 
-        private static LeaserEditModel CreateLeaserEditModelFromLeaser(Leaser leaser)
-        {
-            return new LeaserEditModel
-            {
-                ID = leaser.ID,
-                Name = leaser.Name,
-                Address = leaser.Address,
-                ContactNumber = leaser.ContactNumber,
-                AssetLocation = leaser.AssetInfo.Location,
-                AssetType = leaser.AssetInfo.Type,
-                Description = leaser.AssetInfo.Description
-            };
-        }
+       
 
         [HttpPost]
         // custom attribute created for implementing
@@ -90,39 +67,23 @@ namespace RoomForRent.Controllers
         {
             if(ModelState.IsValid)
             {
-                var leaser = await this.leaserRepository
-                    .Leaser
-                    .Where(x => x.ID == leaserEditModel.ID)
-                    .Include(x => x.AssetInfo)
-                    .FirstOrDefaultAsync();
-                if (leaser == null)
-                    return NotFound();
-                MapLeaserEditModelToLeaserObject(leaserEditModel, leaser);
+                var result = await this.leaserService.UpdateLeaserEditDetails(leaserEditModel);
 
-                await this.leaserRepository.SaveChangesAsync();
+                if(result == false)
+                {
+                    // should redirect to custom error page
+                    // for now show as badrequest
+                    return BadRequest();
+                }
 
                 return RedirectToAction("Index");
             }
             return RedirectToAction("EditDetails", new { id = leaserEditModel.ID });
         }
 
-        private static void MapLeaserEditModelToLeaserObject(LeaserEditModel leaserEditModel, Leaser leaser)
-        {
-            leaser.Address = leaserEditModel.Address;
-            leaser.ContactNumber = leaserEditModel.ContactNumber;
-            leaser.Name = leaserEditModel.Name;
-            leaser.AssetInfo.Description = leaserEditModel.Description;
-            leaser.AssetInfo.Location = leaserEditModel.AssetLocation;
-            leaser.AssetInfo.Type = leaserEditModel.AssetType;
-        }
-
         public async Task<IActionResult> Details([FromRoute(Name ="id")] int leaserId)
         {
-            var leaser = await this.leaserRepository
-                .Leaser
-                .Where(x => x.ID == leaserId)
-                .Include(x => x.AssetInfo)
-                .FirstOrDefaultAsync();
+            var leaser = await this.leaserService.GetLeaserDetails(leaserId);
 
             return View(leaser);
         }
@@ -132,13 +93,7 @@ namespace RoomForRent.Controllers
             if (pageCount < 1)
                 pageCount = 1;
 
-            var pastLeasers = await this.leaserRepository.
-                Leaser
-                .Include(x => x.AssetInfo)
-                .Where(x => x.AssetInfo.IsLeased == true)
-                .Skip( (pageCount - 1) * ItemsPerPage)
-                .Take(ItemsPerPage)
-                .ToListAsync();
+            var (pastLeasers, totalCount) = await this.leaserService.GetLeaserHistory(pageCount, ItemsPerPage);
 
             var leaserHistoryViewModel = new LeaserHistoryViewModel
             {
@@ -147,8 +102,7 @@ namespace RoomForRent.Controllers
                 {
                     CurrentPage = pageCount,
                     ItemsPerPage = ItemsPerPage,
-                    TotalItems = this.leaserRepository.
-                    Leaser.Count(x => x.AssetInfo.IsLeased == true)
+                    TotalItems = totalCount
                 }
             };
             return View(leaserHistoryViewModel);
@@ -156,18 +110,15 @@ namespace RoomForRent.Controllers
 
         [HttpPost]
         public async Task<IActionResult> MarkAsLeased(int leaserId) {
-            var leaser = await this.leaserRepository.Leaser
-                .Where(x => x.ID == leaserId)
-                .Include(x => x.AssetInfo)
-                .FirstOrDefaultAsync();
-            if(leaser != null)
-            {
-                leaser.AssetInfo.IsLeased = true;
-                leaser.AssetInfo.LeasedDate = DateTime.Now;
 
-                await this.leaserRepository.SaveChangesAsync();
-            }
-            return RedirectToAction("Index");
+            var result = await this.leaserService.MarkAsLeased(leaserId);
+
+            if(result == true)
+                return RedirectToAction("Index");
+
+            // should display custom error page
+            // for now show bad request
+            return BadRequest();
         }
 
         // custom attribute created for implementing
@@ -185,31 +136,13 @@ namespace RoomForRent.Controllers
         {
             if (this.ModelState.IsValid)
             {
-                Leaser leaser = CreateLeaserFromLeaserCreateModel(leaserCreateModel);
-                this.leaserRepository.AddLeaser(leaser);
-                await this.leaserRepository.SaveChangesAsync();
+                await this.leaserService.CreateLeaser(leaserCreateModel);
                 return RedirectToAction("Index");
             }
             else
             {
                 return RedirectToAction("Create");
             }
-        }
-
-        private static Leaser CreateLeaserFromLeaserCreateModel(LeaserCreateModel leaserCreateModel)
-        {
-            return new Leaser
-            {
-                Name = leaserCreateModel.Name,
-                Address = leaserCreateModel.Address,
-                ContactNumber = leaserCreateModel.ContactNumber,
-                AssetInfo = new Asset
-                {
-                    Description = leaserCreateModel.Description,
-                    Location = leaserCreateModel.AssetLocation,
-                    Type = leaserCreateModel.AssetType,
-                }
-            };
         }
     }
 }

@@ -1,9 +1,11 @@
-﻿using System;
+﻿using RoomForRent.Models;
+using RoomForRent.Persistence.Contexts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RoomForRent.Models
+namespace RoomForRent.Repositories
 {
     public class EfLeaserRepository : ILeaserRepository
     {

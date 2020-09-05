@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RoomForRent.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RoomForRent.Models
+namespace RoomForRent.Persistence.Contexts
 {
     public class RoomForRentDbContext : DbContext
     {

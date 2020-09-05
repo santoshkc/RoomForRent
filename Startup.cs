@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RoomForRent.Models;
+using RoomForRent.Persistence.Contexts;
+using RoomForRent.Repositories;
 
 namespace RoomForRent
 {
@@ -37,7 +39,7 @@ namespace RoomForRent
             services.AddScoped<ILeaserRepository, EfLeaserRepository>();
             services.AddScoped<IRenterRepository, EfRenterRepository>();
 
-            services.AddScoped<ITransactionRepository, 
+            services.AddScoped<ITransactionRepository,
                 EfRenterLeaserTransactionRepository>();
 
             //services.AddSingleton<ITransactionRepository, 
@@ -65,7 +67,8 @@ namespace RoomForRent
             {
                 endpoints.MapControllerRoute("Leaser",
                     "Leaser/Page{pageCount}",
-                    new {
+                    new
+                    {
                         Controller = "Leaser",
                         action = "Index"
                     });
@@ -80,12 +83,27 @@ namespace RoomForRent
 
                 endpoints.MapControllerRoute("Renter",
                     "Renter/Page{pageCount}",
-                    new {
+                    new
+                    {
                         Controller = "Renter",
                         action = "Index"
                     });
                 endpoints.MapDefaultControllerRoute();
             });
+
+            EnsurePopulated(app);
+        }
+
+        public static void EnsurePopulated(IApplicationBuilder app)
+        {
+            RoomForRentDbContext context = app.ApplicationServices
+            .CreateScope().ServiceProvider.GetRequiredService<RoomForRentDbContext>();
+            if (context.Database.GetPendingMigrations().Any())
+            {
+                context.Database.Migrate();
+
+                context.SaveChanges();
+            }
         }
     }
 }
