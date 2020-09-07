@@ -36,6 +36,9 @@ namespace RoomForRent
                 }
             );
 
+            services.AddDistributedMemoryCache();
+            services.AddSession();
+
             services.AddScoped<ILeaserRepository, EfLeaserRepository>();
             services.AddScoped<IRenterRepository, EfRenterRepository>();
 
@@ -58,6 +61,11 @@ namespace RoomForRent
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseSession(new SessionOptions
+            {
+                IdleTimeout = TimeSpan.FromSeconds(30)
+            });
 
             app.UseStaticFiles();
             app.UseStatusCodePages();

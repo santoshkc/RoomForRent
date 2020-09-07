@@ -8,7 +8,19 @@
     </head>
     <body>
         <div class="bg-dark text-white text-center">
-            <h1>Welcome to Room for Rent</h1>
+            <span class="navbar-brand ml-2">Welcome to RoomForRent</span>
+            @{ 
+                var path = ViewContext.HttpContext.Request.Path;
+                var loggedUserInfo = ViewContext.HttpContext.Session.GetLoggedUserInfo();
+                if(loggedUserInfo.IsLoggedIn)
+                {
+                    <span>Hello, @loggedUserInfo.Email</span>
+                    <a asp-action="LogOut" asp-controller="Account" asp-route-returnUrl="@path" class="ml-1 btn btn-light">Logout</a>
+                } else
+                {
+                    <a asp-action="Login" asp-route-returnUrl="@path" asp-controller="Account" class="ml-1 btn btn-light">Login</a>
+                }
+            }
         </div>
         <div>
             <div class="row m-2">
