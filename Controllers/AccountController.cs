@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RoomForRent.Helpers;
 using RoomForRent.Infrastructure;
@@ -6,6 +8,7 @@ using RoomForRent.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -25,26 +28,13 @@ namespace RoomForRent.Controllers
         public IActionResult Login(string returnUrl = "/")
         {
             ViewData["ReturnUrl"] = returnUrl;
-            
-            var loggedUserInfo = HttpContext.Session.GetLoggedUserInfo();
-            if(loggedUserInfo.IsLoggedIn)
-            {
-                return Redirect(returnUrl);
-            }
-            else 
-                return View();
+            return View();
         }
 
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult LogOut(string returnUrl = "/")
+        public async Task<IActionResult> LogOut(string returnUrl = "/")
         {
-            // Authorized user should only be able to logout
-            // for now will use hack
-            this.HttpContext.Session.SetLoggedUserInfo(new LoggedUserInfo
-            {
-
-            });
-
+            await this.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login",new { returnUrl = returnUrl });
         }
 
@@ -62,11 +52,23 @@ namespace RoomForRent.Controllers
             if(userModel.Email == Email 
                 && userModel.Password == Password )
             {
-                this.HttpContext.Session.SetLoggedUserInfo(new LoggedUserInfo
+                var identity = new ClaimsIdentity(new[]
                 {
-                    Email = userModel.Email,
-                    IsLoggedIn = true
-                });
+                    new Claim(ClaimTypes.Name,userModel.Email),
+                    new Claim(ClaimTypes.Role,"Admin"),
+                }, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        principal,
+                        new AuthenticationProperties
+                        {
+                            IsPersistent = userModel.RememberMe,
+                            ExpiresUtc = DateTime.UtcNow.AddSeconds(30)
+                        }
+                    );
 
                 return RedirectToLocal(returnUrl);
             }
@@ -83,7 +85,6 @@ namespace RoomForRent.Controllers
                 return Redirect(returnUrl);
             else
                 return RedirectToAction(nameof(HomeController.Index), "Home");
-
         }
     }
 }

@@ -11,14 +11,16 @@
             <span class="navbar-brand ml-2">Welcome to RoomForRent</span>
             @{ 
                 var path = ViewContext.HttpContext.Request.Path;
-                var loggedUserInfo = ViewContext.HttpContext.Session.GetLoggedUserInfo();
-                if(loggedUserInfo.IsLoggedIn)
+
+                var identity = ViewContext.HttpContext.User.Identity;
+
+                if(identity.IsAuthenticated)
                 {
-                    <span>Hello, @loggedUserInfo.Email</span>
+                    <span class="text-right">Hello, @identity.Name</span>
                     <a asp-action="LogOut" asp-controller="Account" asp-route-returnUrl="@path" class="ml-1 btn btn-light">Logout</a>
                 } else
                 {
-                    <a asp-action="Login" asp-route-returnUrl="@path" asp-controller="Account" class="ml-1 btn btn-light">Login</a>
+                    <a asp-action="Login" asp-controller="Account" asp-route-returnUrl="@path" class="ml-1 btn btn-light">Login</a>
                 }
             }
         </div>

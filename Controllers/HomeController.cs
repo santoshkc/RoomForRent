@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ using RoomForRent.Services.RenterLeaserTransactionServiceProvider;
 
 namespace RoomForRent.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class HomeController : Controller
     {
         private readonly ITransactionRepository transactionRepository;
@@ -27,15 +29,11 @@ namespace RoomForRent.Controllers
 
         public IActionResult Index()
         {
-            // should use proper [Authorize] but now will
-            // go for basic session checking
-            var loggedUserInfo = HttpContext.Session.GetLoggedUserInfo();
-
-            if(loggedUserInfo.IsLoggedIn == false)
-            {
-                var currentUrl = HttpContext.Request.Path;
-                return RedirectToAction("Login", "Account",new {returnUrl = currentUrl });
-            }
+            //if(!HttpContext.User.Identity.IsAuthenticated)
+            //{
+            //    return RedirectToAction("Login", "Account", 
+            //        new { returnUrl = this.HttpContext.Request.Path });
+            //}
 
             var transactions = renterLeaserTransactionService.GetTransactions();
             return View(transactions);

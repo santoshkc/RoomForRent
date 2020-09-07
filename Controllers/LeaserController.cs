@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RoomForRent.Infrastructure;
@@ -13,6 +14,7 @@ using RoomForRent.Services.LeaserServiceProvider;
 
 namespace RoomForRent.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class LeaserController : Controller
     {
         private readonly ILeaserRepository leaserRepository;
