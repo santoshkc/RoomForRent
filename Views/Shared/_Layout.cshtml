@@ -1,45 +1,64 @@
 ﻿<!DOCTYPE html>
 <html>
-    <head>
-        <title>Room for Rent</title>
-        <meta name="viewport" content="width=device-width" />
-        <link rel="stylesheet" href="~/lib/twitter-bootstrap/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="~/css/styles.css" />
-    </head>
-    <body>
-        <div class="bg-dark text-white text-center">
-            <span class="navbar-brand ml-2">Welcome to RoomForRent</span>
-            @{ 
-                var path = ViewContext.HttpContext.Request.Path;
+<head>
+    <title>Room for Rent</title>
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="~/lib/twitter-bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/styles.css" />
+</head>
+<body>
+    <div class="bg-dark text-white text-center">
+        <span class="navbar-brand ml-2">Welcome to RoomForRent</span>
+        @{
+            var path = ViewContext.HttpContext.Request.Path;
 
-                var identity = ViewContext.HttpContext.User.Identity;
+            var identity = ViewContext.HttpContext.User.Identity;
 
-                if(identity.IsAuthenticated)
-                {
-                    <span class="text-right">Hello, @identity.Name</span>
-                    <a asp-action="LogOut" asp-controller="Account" asp-route-returnUrl="@path" class="ml-1 btn btn-light">Logout</a>
-                } else
-                {
-                    <a asp-action="Login" asp-controller="Account" asp-route-returnUrl="@path" class="ml-1 btn btn-light">Login</a>
-                }
+            if (identity.IsAuthenticated)
+            {
+                <span class="text-right">Hello, @identity.Name</span>
+                <a asp-action="LogOut" asp-controller="Account" asp-route-returnUrl="@path" class="m-1 btn btn-sm btn-light">Logout</a>
             }
-        </div>
-        <div>
-            <div class="row m-2">
-                <div class="col-2">
-                    <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Home">Transactions</a>
-                    <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Leaser">Leasers</a>
-                    <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Renter">Renters</a>
-                </div>
-                <div class="col-10">
-                    @RenderBody()
-                </div>
-                @*<div class="col-2">
+            else
+            {
+                <a asp-action="Login" asp-controller="Account" asp-route-returnUrl="@path" class="m-1 btn btn-sm btn-light">Login</a>
+            }
+        }
+    </div>
+    <div class="container-fluid">
+        <div class="row m-2">
+            <div class="col-2">
+                <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Home">Transactions</a>
+                <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Leaser">Leasers</a>
+                <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Renter">Renters</a>
+            </div>
+            <div class="col-10">
+                @RenderBody()
+            </div>
+            @*<div class="col-2">
                     <div class=""
                         Side Bar Content
                     <div>
                 </div>*@
-            </div>
         </div>
-    </body>
+    </div>
+</body>
+
+@RenderSection("Footer", required: false);
+@if (!IsSectionDefined("Footer"))
+{
+    <style>
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+    <footer class="footer">
+        <div class="bg-dark text-white text-center ">
+            <span>RoomForRent CopyRight © 2020 </span>
+        </div>
+    </footer>
+}
 </html>

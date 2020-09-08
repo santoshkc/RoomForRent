@@ -24,14 +24,17 @@ namespace RoomForRent.Controllers
         {
         }
 
-        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Login(string returnUrl = "/")
         {
             ViewData["ReturnUrl"] = returnUrl;
-            return View();
+
+            if(!HttpContext.User.Identity.IsAuthenticated)
+            {
+                return View();
+            }
+            return RedirectToLocal(returnUrl);
         }
 
-        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> LogOut(string returnUrl = "/")
         {
             await this.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
