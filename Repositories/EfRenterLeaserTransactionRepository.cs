@@ -1,6 +1,9 @@
-﻿using RoomForRent.Models;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
+using RoomForRent.Models;
 using RoomForRent.Persistence.Contexts;
 using RoomForRent.Repositories;
+using RoomForRent.Services.LeaserServiceProvider;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,6 +43,46 @@ namespace RoomForRent.Repositories
         {
             this.roomForRentDbContext.
                 Transactions.Update(renterLeaserTransaction);
+        }
+
+        public async Task<IEnumerable<Leaser>> GetUnlinkedLeasers(int renterId)
+        {
+
+            var leasers = await this.roomForRentDbContext
+                        .Leasers
+                        .Include(x => x.AssetInfo)
+                        .Where(x =>
+                            (x.AssetInfo.IsLeased == null
+                                || x.AssetInfo.IsLeased == false
+                            ) &&
+                            this.roomForRentDbContext
+                            .Transactions
+                            .Any(y =>
+                               y.LeaserId == x.ID
+                               && y.RenterId == renterId
+                               //&& y.TransactionStatus == RenterLeaserTransactionStatus.Pending
+                            ) == false
+                             ).ToListAsync();
+            return leasers;
+        }
+
+        public async Task<IEnumerable<Renter>> GetUnlinkedRenters(int leaserId)
+        {
+            var renters = await this.roomForRentDbContext
+                        .Renters
+                        .Where(x =>
+                            (x.Found.HasValue == false
+                                || x.Found.Value == false
+                            ) &&
+                            this.roomForRentDbContext
+                            .Transactions
+                            .Any(y =>
+                               y.RenterId == x.ID
+                               && y.LeaserId == leaserId
+                            //&& y.TransactionStatus == RenterLeaserTransactionStatus.Pending
+                            ) == false
+                ).ToListAsync();
+            return renters;
         }
 
 

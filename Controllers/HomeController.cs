@@ -39,9 +39,10 @@ namespace RoomForRent.Controllers
             return View(transactions);
         }
 
-        public IActionResult LinkToLeaser([FromRoute(Name ="id")] int renterId)
+        public async Task<IActionResult> LinkToLeaser([FromRoute(Name ="id")] int renterId)
         {
-            RenterLeasersLinkDto linkDto = renterLeaserTransactionService.GetRenterLeasersLinkDto(renterId);
+            RenterLeasersLinkDto linkDto 
+                = await renterLeaserTransactionService.GetPotentialLeasersDto(renterId);
             return View(linkDto);
         }
 
@@ -58,9 +59,10 @@ namespace RoomForRent.Controllers
             return BadRequest();
         }
 
-        public IActionResult LinkToRenter([FromRoute(Name ="id")] int leaserId)
+        public async Task<IActionResult> LinkToRenter([FromRoute(Name ="id")] int leaserId)
         {
-            LeaserRentersLinkDto linkDto = renterLeaserTransactionService.GetLeaserRentersLinkDto(leaserId);
+            LeaserRentersLinkDto linkDto = 
+                await renterLeaserTransactionService.GetPotentialRentersDto(leaserId);
             return View(linkDto);
         }
 

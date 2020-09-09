@@ -18,6 +18,10 @@ namespace RoomForRent.Repositories
 
         void ModifyTransaction(RenterLeaserTransaction renterLeaserTransaction);
 
+        Task<IEnumerable<Leaser>> GetUnlinkedLeasers(int renterId);
+
+        Task<IEnumerable<Renter>> GetUnlinkedRenters(int leaserId);
+
         bool SaveChangesAsync();
     }
 }

@@ -18,7 +18,7 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             this.transactionRepository = transactionRepository;
         }
 
-        internal RenterLeasersLinkDto GetRenterLeasersLinkDto(int renterId)
+        internal async Task<RenterLeasersLinkDto> GetPotentialLeasersDto(int renterId)
         {
             var renter = this.transactionRepository
                             .RenterRepository
@@ -26,22 +26,18 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
                             .Where(x => x.ID == renterId)
                             .FirstOrDefault();
 
-            var leasers = this.transactionRepository
-                        .LeaserRepository
-                        .Leaser
-                        .Include(x => x.AssetInfo)
-                        .Where(x => x.AssetInfo.IsLeased == null ||
-                        x.AssetInfo.IsLeased == false);
+            var leasers = await this.transactionRepository
+                .GetUnlinkedLeasers(renterId);
 
             var linkDto = new RenterLeasersLinkDto
             {
-                Leasers = leasers,
                 Renter = renter,
+                Leasers = leasers,
             };
             return linkDto;
         }
 
-        internal LeaserRentersLinkDto GetLeaserRentersLinkDto(int leaserId)
+        internal async Task<LeaserRentersLinkDto> GetPotentialRentersDto(int leaserId)
         {
             var leaser = this.transactionRepository.
                                 LeaserRepository
@@ -50,12 +46,8 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
                                 .Include(x => x.AssetInfo)
                                 .FirstOrDefault();
 
-            var renters = this.transactionRepository.
-                    RenterRepository
-                    .Renters
-                    .Where(x => x.Found == null
-                        || x.Found.Value == false)
-                    .ToList();
+            var renters = await this.transactionRepository
+                .GetUnlinkedRenters(leaserId);
 
             var linkDto = new LeaserRentersLinkDto
             {

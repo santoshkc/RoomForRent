@@ -4,7 +4,7 @@
     <h3>Link Leaser to Renter</h3>
 </div>
 
-@if (Model.Leaser == null || Model.Renters == null || Model.Renters.Count() == 0) {
+@if (Model.Leaser == null) {
     <div>
         <h4>No Information Available for Mapping.</h4>
     </div>
@@ -32,18 +32,29 @@ else {
                 </tr>
                 <tr>
                     <td>
-                        <form action = "LinkToRenter" method="post">
-                            <input type="hidden" name="leaserId" value="@Model.Leaser.ID" />
-                            <label>Available Renters: </label>
-                            <select name="renterId">
-                                @foreach (var renterInfo in Model.Renters)
-                                {
-                                    <option value="@renterInfo.ID">@renterInfo.Name (@renterInfo.Address)</option>
-                                }
-                            </select>
-                            <button type="submit">Link Renter</button>
-                        </form>
+                        <vc:active-transactions id="@((int)Model.Leaser.ID)" is-renter="false" />
                     </td>
+                </tr>
+                <tr>
+                    <td>
+                        @if (Model.Renters != null && Model.Renters.Count() > 0)
+                        {
+                            <form action="LinkToRenter" method="post">
+                                <input type="hidden" name="leaserId" value="@Model.Leaser.ID" />
+                                <label>Available Renters: </label><br />
+                                <select name="renterId">
+                                    @foreach (var renterInfo in Model.Renters)
+                                    {
+                                        <option value="@renterInfo.ID">@renterInfo.Name (@renterInfo.Address)</option>
+                                    }
+                                </select>
+                                <button type="submit">Link Renter</button>
+                            </form>
+                        } else
+                        {
+                            <span>Additonal Renters not available for linking.</span>
+                        }
+                        </td>
                 </tr>
             </tbody>
         </table>
