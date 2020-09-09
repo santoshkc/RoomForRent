@@ -23,11 +23,19 @@ else
         <tr>
             <td>Description: @Model.Description</td>
         </tr>
-        @if (Model.Found.HasValue && Model.Found.Value == true)
-        {
-            <td>Rent Status:  Rented at @(Model.FoundDate.HasValue 
-                ? Model.FoundDate.Value.ToShortDateString() : "N/A" )</td>
+        @if (Model.Found.HasValue && Model.Found.Value == true) {
+        <tr>
+            <td>
+                Rent Status:  Rented at @(Model.FoundDate.HasValue
+                    ? Model.FoundDate.Value.ToShortDateString() : "N/A" )
+            </td>
+        </tr>
         }
+        <tr>
+            <td>
+                <vc:active-transactions id="@((int)Model.ID)" is-renter="true" />
+            </td>
+        </tr>
     </table>
 </div>
 }

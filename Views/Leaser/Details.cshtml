@@ -29,9 +29,18 @@ else
             </tr>
             @if (Model.AssetInfo.IsLeased.HasValue && Model.AssetInfo.IsLeased.Value == true)
             {
-                <td>Leased Status:  Leased at @(Model.AssetInfo.LeasedDate.HasValue ? 
-                            Model.AssetInfo.LeasedDate.Value.ToShortDateString(): "N/A") </td>
+                <tr>
+                    <td>
+                        Leased Status:  Leased at @(Model.AssetInfo.LeasedDate.HasValue ?
+                            Model.AssetInfo.LeasedDate.Value.ToShortDateString(): "N/A")
+                    </td>
+                </tr>
             }
+            <tr>
+                <td>
+                    <vc:active-transactions id="@Model.ID" is-renter="false" />
+                </td>
+            </tr>
         </table>
     </div>
 }

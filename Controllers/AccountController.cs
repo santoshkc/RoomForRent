@@ -69,7 +69,7 @@ namespace RoomForRent.Controllers
                         new AuthenticationProperties
                         {
                             IsPersistent = userModel.RememberMe,
-                            ExpiresUtc = DateTime.UtcNow.AddSeconds(30)
+                            ExpiresUtc = DateTime.UtcNow.AddHours(1)
                         }
                     );
 

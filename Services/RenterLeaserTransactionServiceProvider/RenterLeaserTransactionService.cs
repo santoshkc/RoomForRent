@@ -246,5 +246,47 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
                     Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
                 });
         }
+
+        public IEnumerable<RenterLeaserTransactionDto> GetAllRenterTransactions(int renterId, bool showAll = false)
+        {
+            return this.transactionRepository
+                .Transactions
+                .Where(x => x.RenterId == renterId && 
+                    (showAll || x.TransactionStatus == RenterLeaserTransactionStatus.Pending))
+                .Select(x => new RenterLeaserTransactionDto
+                {
+                    Id = x.ID,
+                    CreatedDate = x.CreatedDate,
+                    LastModifiedDate = x.LastModifiedDate,
+                    TransactionStatus = x.TransactionStatus,
+                    LeaserName = this.transactionRepository
+                    .LeaserRepository.Leaser.
+                    Where(y => y.ID == x.LeaserId).FirstOrDefault()?.Name ?? "N/A",
+                    RenterName = this.transactionRepository
+                    .RenterRepository.Renters.
+                    Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
+                });
+        }
+
+        public IEnumerable<RenterLeaserTransactionDto> GetAllLeaserTransactions(int leaserId, bool showAll = false)
+        {
+            return this.transactionRepository
+                .Transactions
+                .Where(x => x.LeaserId == leaserId &&
+                    (showAll || x.TransactionStatus == RenterLeaserTransactionStatus.Pending))
+                .Select(x => new RenterLeaserTransactionDto
+                {
+                    Id = x.ID,
+                    CreatedDate = x.CreatedDate,
+                    LastModifiedDate = x.LastModifiedDate,
+                    TransactionStatus = x.TransactionStatus,
+                    LeaserName = this.transactionRepository
+                    .LeaserRepository.Leaser.
+                    Where(y => y.ID == x.LeaserId).FirstOrDefault()?.Name ?? "N/A",
+                    RenterName = this.transactionRepository
+                    .RenterRepository.Renters.
+                    Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
+                });
+        }
     }
 }

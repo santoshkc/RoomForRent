@@ -1,0 +1,24 @@
+﻿@model  RoomForRent.Components.TransactionViewDto
+<div><strong>My Transactions</strong></div>
+<table class="table table-sm table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Associated @(Model.ShowAssociatedLeasers ? "Leaser" : "Renter" )</th>
+            <th>Start Date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.TransactionDtos != null)
+        {
+            @foreach (var transaction in Model.TransactionDtos)
+            {
+                <tr>
+                    <td>@(Model.ShowAssociatedLeasers ?  transaction.LeaserName : transaction.RenterName)</td>
+                    <td>@transaction.CreatedDate</td>
+                    <td>@transaction.TransactionStatus.ToString()</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

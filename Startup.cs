@@ -55,15 +55,6 @@ namespace RoomForRent
 
             services.AddScoped<ITransactionRepository,
                 EfRenterLeaserTransactionRepository>();
-
-            //services.AddSingleton<ITransactionRepository, 
-            //    InMemoryLeaserRenterTransactionRepository > ();
-
-            //services.AddSingleton<ILeaserRepository, EfLeaserRepository>();
-            //services.AddSingleton<IRenterRepository, EfRenterRepository>();
-
-            //services.AddSingleton<IRenterRepository, InMemoryRenterRepository>();
-            //services.AddSingleton<ILeaserRepository, InMemoryRoomLeaserRepository>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -75,7 +66,7 @@ namespace RoomForRent
 
             app.UseSession(new SessionOptions
             {
-                IdleTimeout = TimeSpan.FromSeconds(30)
+                IdleTimeout = TimeSpan.FromMinutes(3)
             });
 
             app.UseStaticFiles();
