@@ -24,7 +24,6 @@ namespace RoomForRent.Controllers
         {
             this.renterRepository = renterRepository;
             renterService = new RenterService(renterRepository);
-
         }
 
         private static int ItemsPerPage = 5;
@@ -91,11 +90,6 @@ namespace RoomForRent.Controllers
         [ImportModelState]
         public async Task<IActionResult> EditDetails([FromRoute(Name = "id")] int renterId)
         {
-            var renter = await this.renterRepository
-                .Renters
-                .Where(x => x.ID == renterId)
-                .FirstOrDefaultAsync();
-
             var renterEditModel = await renterService.GetRenterEditDetails(renterId);
 
             if(renterEditModel != null)

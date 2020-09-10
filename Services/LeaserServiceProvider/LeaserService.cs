@@ -18,32 +18,28 @@ namespace RoomForRent.Services.LeaserServiceProvider
             this.leaserRepository = leaserRepository;
         }
 
-        internal async Task<(List<Leaser> leasers,int activeLeasers)> GetLeasers(int pageCount, int itemsPerPage)
+        internal async Task<(IEnumerable<Leaser> leasers,int activeLeasers)> GetLeasers(int pageCount, int itemsPerPage)
         {
-            var leasers = await this.leaserRepository
-                .Leaser
-                .Include(x => x.AssetInfo)
-                .Where(x => x.AssetInfo.IsLeased == null
-                    || x.AssetInfo.IsLeased == false)
-                .Skip((pageCount - 1) * itemsPerPage)
-                .Take(itemsPerPage)
-                .ToListAsync();
+            var leasers = await GetActiveLeasers(pageCount, itemsPerPage);
+            int totalCount = await GetActiveLeasersCount();
 
-            var totalCount = await this.leaserRepository.Leaser
-                                 .Include(x => x.AssetInfo)
-                                .CountAsync(x => x.AssetInfo.IsLeased == null
-                                || x.AssetInfo.IsLeased == false);
+            return (leasers, totalCount);
+        }
 
-            return (leasers,totalCount);
+        private async Task<int> GetActiveLeasersCount()
+        {
+            return await GetLeasersCountInternal(false);
+        }
+
+        private async Task<IEnumerable<Leaser>> GetActiveLeasers(int pageCount, int itemsPerPage)
+        {
+            return await GetLeasersInternal(pageCount, itemsPerPage,false);
         }
 
         internal async Task<LeaserEditModel> GetLeaserEditDetails(int leaserId)
         {
             var leaser = await this.leaserRepository
-                .Leaser
-                .Where(x => x.ID == leaserId)
-                .Include(x => x.AssetInfo)
-                .FirstOrDefaultAsync();
+                    .GetLeaserByIdAsync(leaserId);
 
             if (leaser != null)
             {
@@ -57,11 +53,8 @@ namespace RoomForRent.Services.LeaserServiceProvider
 
         internal async Task<bool> UpdateLeaserEditDetails(LeaserEditModel leaserEditModel)
         {
-            var leaser = await this.leaserRepository
-                    .Leaser
-                    .Where(x => x.ID == leaserEditModel.ID)
-                    .Include(x => x.AssetInfo)
-                    .FirstOrDefaultAsync();
+            var leaser = await this.leaserRepository.
+                            GetLeaserByIdAsync(leaserEditModel.ID);
             if (leaser == null)
                 return false;
             MapLeaserEditModelToLeaserObject(leaserEditModel, leaser);
@@ -72,42 +65,49 @@ namespace RoomForRent.Services.LeaserServiceProvider
         internal async Task<Leaser> GetLeaserDetails(int leaserId)
         {
             var leaser = await this.leaserRepository
-               .Leaser
-               .Where(x => x.ID == leaserId)
-               .Include(x => x.AssetInfo)
-               .FirstOrDefaultAsync();
+                            .GetLeaserByIdAsync(leaserId);
             return leaser;
         }
 
-        internal async Task<(List<Leaser> pastLeasers,int totalItems)> GetLeaserHistory(int pageCount, int itemsPerPage)
+        internal async Task<(IEnumerable<Leaser> pastLeasers,int pastLeasersCount)> GetLeaserHistory(int pageCount, int itemsPerPage)
         {
-            var pastLeasers = await this.leaserRepository.
-                Leaser
-                .Include(x => x.AssetInfo)
-                .Where(x => x.AssetInfo.IsLeased == true)
-                .Skip((pageCount - 1) * itemsPerPage)
-                .Take(itemsPerPage)
-                .ToListAsync();
-
-            var totalItems = this.leaserRepository.
-                    Leaser.Count(x => x.AssetInfo.IsLeased == true);
+            var pastLeasers = await GetPastLeasers(pageCount, itemsPerPage);
+            int totalItems = await GetPastLeasersCount();
 
             return (pastLeasers, totalItems);
         }
 
+        private async Task<int> GetPastLeasersCount()
+        {
+            return await GetLeasersCountInternal(true);
+        }
+
+        private async Task<IEnumerable<Leaser>> GetPastLeasers(int pageCount, int itemsPerPage)
+        {
+            return await GetLeasersInternal(pageCount,itemsPerPage,true);
+        }
+
+        private async Task<int> GetLeasersCountInternal(bool retrievePastLeasers = false)
+        {
+            return await this.leaserRepository.GetLeasersCount(retrievePastLeasers);
+        }
+
+        private async Task<IEnumerable<Leaser>> GetLeasersInternal(int pageCount, int itemsPerPage,bool retrievePastUsers = false)
+        {
+            return await this.leaserRepository.GetLeasers(pageCount, itemsPerPage, retrievePastUsers);
+        }
+
         internal async Task<bool> MarkAsLeased(int leaserId)
         {
-            var leaser = await this.leaserRepository.Leaser
-                .Where(x => x.ID == leaserId)
-                .Include(x => x.AssetInfo)
-                .FirstOrDefaultAsync();
+            Leaser leaser = await this.leaserRepository
+                    .GetLeaserByIdAsync(leaserId);
+
             if (leaser != null)
             {
                 leaser.AssetInfo.IsLeased = true;
                 leaser.AssetInfo.LeasedDate = DateTime.Now;
 
                 return await this.leaserRepository.SaveChangesAsync();
-
             }
             return false;
         }

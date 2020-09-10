@@ -38,7 +38,6 @@ namespace RoomForRent.Repositories
             this.roomForRentDbContext.Transactions.Add(renterLeaserTransaction);
         }
 
-
         public void ModifyTransaction(RenterLeaserTransaction renterLeaserTransaction)
         {
             this.roomForRentDbContext.
@@ -86,10 +85,18 @@ namespace RoomForRent.Repositories
         }
 
 
-        // TODO: make real async later.
-        public bool SaveChangesAsync()
+        public async Task<bool> SaveChangesAsync()
         {
-            return this.roomForRentDbContext.SaveChanges() >= 0;
+            return await this.roomForRentDbContext.SaveChangesAsync() >= 0;
+        }
+
+        public async Task<RenterLeaserTransaction> GetTransactionByIdAsync(int transactionId)
+        {
+            var transaction = await this.roomForRentDbContext
+                .Transactions
+                .Where(x => x.ID == transactionId)
+                .FirstOrDefaultAsync();
+            return transaction;
         }
     }
 }

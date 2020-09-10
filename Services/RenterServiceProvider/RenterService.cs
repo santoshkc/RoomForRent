@@ -21,11 +21,7 @@ namespace RoomForRent.Services.RenterServiceProvider
         internal async Task<RenterListViewModel> GetRenterList(int pageCount, int itemsPerPage)
         {
             var renters = await this.renterRepository
-                            .Renters
-                            .Where(x => x.Found == null || x.Found == false)
-                            .Skip((pageCount - 1) * itemsPerPage)
-                            .Take(itemsPerPage)
-                            .ToListAsync();
+                                .GetRenters(pageCount, itemsPerPage, false);
 
             var renterViewInfo = new RenterListViewModel
             {
@@ -34,9 +30,7 @@ namespace RoomForRent.Services.RenterServiceProvider
                 {
                     CurrentPage = pageCount,
                     ItemsPerPage = itemsPerPage,
-                    TotalItems = await this.renterRepository.Renters
-                                .CountAsync(x => x.Found == null
-                                || x.Found.Value == false)
+                    TotalItems = await this.renterRepository.GetRentersCount(false)
                 }
             };
             return renterViewInfo;
@@ -55,9 +49,7 @@ namespace RoomForRent.Services.RenterServiceProvider
         internal async Task<bool> MarkAsFound(int renterId)
         {
             var renter = await this.renterRepository
-                .Renters
-                .Where(x => x.ID == renterId)
-                .FirstOrDefaultAsync();
+                .GetRenterByIdAsync(renterId);
 
             if (renter != null)
             {
@@ -71,10 +63,7 @@ namespace RoomForRent.Services.RenterServiceProvider
 
         internal async Task<Renter> GetRenterDetails(int renterId)
         {
-            var renter = await this.renterRepository
-                .Renters
-                .Where(x => x.ID == renterId)
-                .FirstOrDefaultAsync();
+            var renter = await this.renterRepository.GetRenterByIdAsync(renterId);
 
             return renter;
         }
@@ -100,10 +89,7 @@ namespace RoomForRent.Services.RenterServiceProvider
 
         internal async Task<RenterEditModel> GetRenterEditDetails(int renterId)
         {
-            var renter = await this.renterRepository
-               .Renters
-               .Where(x => x.ID == renterId)
-               .FirstOrDefaultAsync();
+            var renter = await this.renterRepository.GetRenterByIdAsync(renterId);
 
             // will use auto mapper later
             // for now manual mapping
@@ -131,10 +117,8 @@ namespace RoomForRent.Services.RenterServiceProvider
         internal async Task<bool> EditRenterDetails(RenterEditModel renterEditModel)
         {
             var renterModel = await this.
-                    renterRepository
-                    .Renters
-                    .Where(x => x.ID == renterEditModel.ID)
-                    .FirstOrDefaultAsync();
+                    renterRepository.GetRenterByIdAsync((int)renterEditModel.ID);
+
             if (renterModel == null)
             {
                 return false;

@@ -12,6 +12,12 @@ namespace RoomForRent.Repositories
 
         void AddRenter(Renter renter);
 
+        Task<Renter> GetRenterByIdAsync(int renterId);
+
+        Task<IEnumerable<Renter>> GetRenters(int pageCount, int itemsPerPage, bool retrivePastLeasers = false);
+
+        Task<int> GetRentersCount(bool retrievePastLeasers = false);
+
         Task<bool> SaveChangesAsync();
     }
 }

@@ -17,8 +17,6 @@ namespace RoomForRent.Controllers
     [Authorize(Roles = "Admin")]
     public class LeaserController : Controller
     {
-        private readonly ILeaserRepository leaserRepository;
-
         private readonly LeaserService leaserService = null;
 
         public LeaserController(ILeaserRepository roomLeaserRepository) {

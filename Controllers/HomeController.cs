@@ -47,10 +47,10 @@ namespace RoomForRent.Controllers
         }
 
         [HttpPost]
-        public IActionResult LinkToLeaser([FromForm(Name = "leaserId")] int leaserId, 
+        public async Task<IActionResult> LinkToLeaser([FromForm(Name = "leaserId")] int leaserId, 
                 [FromForm(Name = "renterId")] int renterId)
         {
-            var result = this.renterLeaserTransactionService
+            var result = await this.renterLeaserTransactionService
                 .LinkRenterAndLeaser(leaserId, renterId);
 
             if (result == true)
@@ -67,22 +67,22 @@ namespace RoomForRent.Controllers
         }
 
         [HttpPost]
-        public IActionResult LinkToRenter([FromForm(Name = "leaserId")] int leaserId, [FromForm(Name ="renterId")] int renterId)
+        public async Task<IActionResult> LinkToRenter([FromForm(Name = "leaserId")] int leaserId, [FromForm(Name ="renterId")] int renterId)
         {
-            var result = this.renterLeaserTransactionService
+            var result = await this.renterLeaserTransactionService
                 .LinkRenterAndLeaser(leaserId, renterId);
 
             if(result == true)
                 return RedirectToAction(nameof(Index));
 
-            return NotFound();
+            return BadRequest();
         }
 
         [HttpPost]
-        public IActionResult UpdateTransactionStatus([FromRoute(Name ="id")] int transactionId, 
+        public async Task<IActionResult> UpdateTransactionStatus([FromRoute(Name ="id")] int transactionId, 
                 [FromForm(Name = "transactionStatus")] RenterLeaserTransactionStatus transactionStatus)
         {
-            var result = this.renterLeaserTransactionService
+            var result = await this.renterLeaserTransactionService
                 .UpdateTransaction(transactionId, transactionStatus);
             if(result == false)
             {
@@ -92,18 +92,18 @@ namespace RoomForRent.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult CreateTransaction(int? leaserId, int? renterId )
+        public async Task<IActionResult> CreateTransaction(int? leaserId, int? renterId )
         {
-            var renterLeaserTransactionCreateDto = 
+            var renterLeaserTransactionCreateDto = await
                 renterLeaserTransactionService.GetDataForTransactionLink(leaserId, renterId);
 
             return View(renterLeaserTransactionCreateDto);
         }
 
         [HttpPost]
-        public IActionResult CreateTransaction(int leaserId, int renterId)
+        public async Task<IActionResult> CreateTransaction(int leaserId, int renterId)
         {
-            var result = this.renterLeaserTransactionService
+            var result = await this.renterLeaserTransactionService
                 .LinkRenterAndLeaser(leaserId, renterId);
 
             if (result == true)

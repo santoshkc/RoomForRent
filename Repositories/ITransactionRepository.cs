@@ -14,6 +14,8 @@ namespace RoomForRent.Repositories
 
         IEnumerable<RenterLeaserTransaction> Transactions { get; }
 
+        Task<RenterLeaserTransaction> GetTransactionByIdAsync(int transactionId);
+
         void AddTransaction(RenterLeaserTransaction renterLeaserTransaction);
 
         void ModifyTransaction(RenterLeaserTransaction renterLeaserTransaction);
@@ -22,6 +24,6 @@ namespace RoomForRent.Repositories
 
         Task<IEnumerable<Renter>> GetUnlinkedRenters(int leaserId);
 
-        bool SaveChangesAsync();
+        Task<bool> SaveChangesAsync();
     }
 }

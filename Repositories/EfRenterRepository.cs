@@ -24,6 +24,39 @@ namespace RoomForRent.Repositories
             this.roomForRentDbContext.Renters.Add(renter);
         }
 
+        public async Task<Renter> GetRenterByIdAsync(int renterId)
+        {
+            var renter = await this.roomForRentDbContext
+                .Renters
+                .Where(x => x.ID == renterId)
+                .FirstOrDefaultAsync();
+            return renter;
+        }
+
+        public async Task<IEnumerable<Renter>> GetRenters(int pageCount, int itemsPerPage, bool retrivePastLeasers = false)
+        {
+            var renters = await this.roomForRentDbContext
+                            .Renters
+                            .Where(x => retrivePastLeasers ? 
+                                    x.Found == true
+                                    : (x.Found == null || x.Found == false)
+                                )
+                            .Skip((pageCount - 1) * itemsPerPage)
+                            .Take(itemsPerPage)
+                            .ToListAsync();
+
+            return renters;
+        }
+
+        public async Task<int> GetRentersCount(bool retrievePastLeasers = false)
+        {
+            return await this.roomForRentDbContext.Renters
+                                .CountAsync(x => retrievePastLeasers 
+                                    ? x.Found == true
+                                  : (x.Found == null || x.Found.Value == false)
+                                  );
+        }
+
         public async Task<bool> SaveChangesAsync()
         {
             var result = await this.roomForRentDbContext.SaveChangesAsync() >= 0;

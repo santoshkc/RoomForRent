@@ -20,11 +20,9 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
 
         internal async Task<RenterLeasersLinkDto> GetPotentialLeasersDto(int renterId)
         {
-            var renter = this.transactionRepository
+            var renter = await this.transactionRepository
                             .RenterRepository
-                            .Renters
-                            .Where(x => x.ID == renterId)
-                            .FirstOrDefault();
+                            .GetRenterByIdAsync(renterId);
 
             var leasers = await this.transactionRepository
                 .GetUnlinkedLeasers(renterId);
@@ -39,12 +37,9 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
 
         internal async Task<LeaserRentersLinkDto> GetPotentialRentersDto(int leaserId)
         {
-            var leaser = this.transactionRepository.
+            var leaser = await this.transactionRepository.
                                 LeaserRepository
-                                .Leaser
-                                .Where(x => x.ID == leaserId)
-                                .Include(x => x.AssetInfo)
-                                .FirstOrDefault();
+                                .GetLeaserByIdAsync(leaserId);
 
             var renters = await this.transactionRepository
                 .GetUnlinkedRenters(leaserId);
@@ -57,22 +52,18 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             return linkDto;
         }
 
-        internal bool LinkRenterAndLeaser(int leaserId,int renterId)
+        internal async Task<bool> LinkRenterAndLeaser(int leaserId,int renterId)
         {
-            var leaser = this.transactionRepository
-                .LeaserRepository.Leaser
-                .Where(x => x.ID == leaserId)
-                .SingleOrDefault();
+            var leaser = await this.transactionRepository
+                .LeaserRepository.GetLeaserByIdAsync(leaserId);
 
             if(leaser == null)
             {
                 return false;
             }
 
-            var renter = this.transactionRepository
-                .RenterRepository.Renters
-                .Where(x => x.ID == renterId)
-                .SingleOrDefault();
+            var renter = await this.transactionRepository
+                .RenterRepository.GetRenterByIdAsync(renterId);
 
             if(renter == null)
             {
@@ -89,19 +80,17 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             };
 
             this.transactionRepository.AddTransaction(transaction);
-            return this.transactionRepository.SaveChangesAsync();
+            return await this.transactionRepository.SaveChangesAsync();
         }
 
-        internal RenterLeaserTransactionCreateDto GetDataForTransactionLink(int? leaserId, int? renterId)
+        internal async Task<RenterLeaserTransactionCreateDto> GetDataForTransactionLink(int? leaserId, int? renterId)
         {
             var rentersInfo = new List<RenterTransactionInfo>();
             if (renterId.HasValue)
             {
-                var renterInfo = this.transactionRepository
+                var renterInfo = await this.transactionRepository
                     .RenterRepository
-                    .Renters
-                    .Where(x => x.ID == renterId.Value)
-                    .SingleOrDefault();
+                    .GetRenterByIdAsync(renterId.Value);
 
                 if (renterInfo != null)
                 {
@@ -116,11 +105,11 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             }
             else
             {
-                var renters = this.transactionRepository
+                var renters = await this.transactionRepository
                         .RenterRepository
-                        .Renters
-                        .Where(x => x.Found == null || x.Found.Value == false)
-                        .Select(x => new RenterTransactionInfo
+                        .GetRenters(1, 5, false);
+                        
+                var rentersToAdd = renters.Select(x => new RenterTransactionInfo
                             {
                                 RenterId = (int)x.ID,
                                 Name = x.Name,
@@ -128,17 +117,14 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
                             }
                         ).ToList();
 
-                rentersInfo.AddRange(renters);
+                rentersInfo.AddRange(rentersToAdd);
             }
 
             var leasersInfo = new List<LeaserTransactionInfo>();
             if (leaserId.HasValue)
             {
-                var leaserInfo = this.transactionRepository
-                    .LeaserRepository
-                    .Leaser
-                    .Where(x => x.ID == leaserId.Value)
-                    .SingleOrDefault();
+                var leaserInfo = await this.transactionRepository
+                    .LeaserRepository.GetLeaserByIdAsync(leaserId.Value);
 
                 if (leaserInfo != null)
                 {
@@ -153,20 +139,18 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             }
             else
             {
-                var leasers = this.transactionRepository
+                var leasers = await this.transactionRepository
                     .LeaserRepository
-                    .Leaser
-                    .Include(x => x.AssetInfo)
-                    .Where( x => x.AssetInfo.IsLeased == null || 
-                    x.AssetInfo.IsLeased == false)
-                    .Select(x => new LeaserTransactionInfo
+                    .GetLeasers(1, 5, false);
+                    
+                var leasersToAdd = leasers.Select(x => new LeaserTransactionInfo
                         {
                             LeaserId = x.ID,
                             Name = x.Name,
                             Address = x.Address,
                         }).ToList();
 
-                leasersInfo.AddRange(leasers);
+                leasersInfo.AddRange(leasersToAdd);
             }
 
             return new RenterLeaserTransactionCreateDto
@@ -198,12 +182,10 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             return null;
         }
 
-        public bool UpdateTransaction(int transactionId,RenterLeaserTransactionStatus renterLeaserTransactionStatus)
+        public async Task<bool> UpdateTransaction(int transactionId,RenterLeaserTransactionStatus renterLeaserTransactionStatus)
         {
-            var transaction = this.transactionRepository
-                .Transactions
-                .Where(x => x.ID == transactionId)
-                .FirstOrDefault();
+            var transaction = await this.transactionRepository
+                .GetTransactionByIdAsync(transactionId);
 
             if(transaction != null)
             {
@@ -212,7 +194,7 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
 
                 this.transactionRepository.ModifyTransaction(transaction);
 
-                this.transactionRepository.SaveChangesAsync();
+                await this.transactionRepository.SaveChangesAsync();
 
                 return true;
             }
