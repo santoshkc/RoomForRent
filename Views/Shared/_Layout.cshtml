@@ -9,21 +9,7 @@
 <body>
     <div class="bg-dark text-white text-center">
         <span class="navbar-brand ml-2">Welcome to RoomForRent</span>
-        @{
-            var path = ViewContext.HttpContext.Request.Path;
-
-            var identity = ViewContext.HttpContext.User.Identity;
-
-            if (identity.IsAuthenticated)
-            {
-                <span class="text-right">Hello, @identity.Name</span>
-                <a asp-action="LogOut" asp-controller="Account" asp-route-returnUrl="@path" class="m-1 btn btn-sm btn-light">Logout</a>
-            }
-            else
-            {
-                <a asp-action="Login" asp-controller="Account" asp-route-returnUrl="@path" class="m-1 btn btn-sm btn-light">Login</a>
-            }
-        }
+        <partial name="_UserLoginInfo" />
     </div>
     <div class="container-fluid">
         <div class="row m-2">

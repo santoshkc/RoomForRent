@@ -1,0 +1,15 @@
+﻿@{
+    var path = ViewContext.HttpContext.Request.Path;
+
+    var identity = ViewContext.HttpContext.User.Identity;
+
+    var loggedIn = identity.IsAuthenticated;
+
+    if (loggedIn)
+    {
+        <span class="text-right">Hello, @identity.Name</span>
+    }
+
+    var placeHolder = loggedIn == false ? "Login" : "Logout";
+    <a asp-action="@(placeHolder)" asp-controller="Account" asp-route-returnUrl="@path" class="m-1 btn btn-sm btn-light">@placeHolder</a>
+}
