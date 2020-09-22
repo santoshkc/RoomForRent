@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using RoomForRent.Infrastructure;
 using RoomForRent.Models;
 using RoomForRent.Models.ViewModel;
@@ -16,17 +17,22 @@ namespace RoomForRent.Controllers
     [Authorize(Roles = "Admin")]
     public class RenterController : Controller
     {
+        private readonly IOptions<RoomForRentOptions> optionsAccessor;
+
         private readonly IRenterRepository renterRepository;
 
         private readonly RenterService renterService = null;
 
-        public RenterController(IRenterRepository renterRepository)
+        public RenterController(IOptions<RoomForRentOptions> optionsAccessor, IRenterRepository renterRepository)
         {
+            this.optionsAccessor = optionsAccessor;
+            this.ItemsPerPage = optionsAccessor.Value.ItemsPerPage;
+
             this.renterRepository = renterRepository;
             renterService = new RenterService(renterRepository);
         }
 
-        private static int ItemsPerPage = 5;
+        private readonly int ItemsPerPage;
 
         public async Task<IActionResult> Index(int pageCount)
         {

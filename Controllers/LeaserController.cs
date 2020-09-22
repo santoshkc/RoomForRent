@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using RoomForRent.Infrastructure;
 using RoomForRent.Models;
 using RoomForRent.Models.LeaserModels;
@@ -18,12 +19,15 @@ namespace RoomForRent.Controllers
     public class LeaserController : Controller
     {
         private readonly LeaserService leaserService = null;
+        private readonly IOptions<RoomForRentOptions> optionsAccessor;
 
-        public LeaserController(ILeaserRepository roomLeaserRepository) {
+        public LeaserController(IOptions<RoomForRentOptions> optionsAccessor, ILeaserRepository roomLeaserRepository) {
             leaserService = new LeaserService(roomLeaserRepository);
+            this.optionsAccessor = optionsAccessor;
+            this.ItemsPerPage = this.optionsAccessor.Value.ItemsPerPage;
         }
         
-        private static int ItemsPerPage = 5;
+        private readonly int ItemsPerPage;
 
         public async Task<IActionResult> Index(int pageCount) {
             if (pageCount <= 1)
@@ -37,7 +41,7 @@ namespace RoomForRent.Controllers
                 PagingInfo = new PagingInfo
                 {
                     CurrentPage = pageCount,
-                    ItemsPerPage = LeaserController.ItemsPerPage,
+                    ItemsPerPage = ItemsPerPage,
                     TotalItems = totalActiveLeasers
                 }
             };

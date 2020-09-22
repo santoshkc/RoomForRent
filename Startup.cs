@@ -16,6 +16,12 @@ using RoomForRent.Repositories;
 
 namespace RoomForRent
 {
+    public class RoomForRentOptions
+    {
+        public const string OptionsName = "RoomForRentOptions";
+        public int ItemsPerPage { get; set; }
+    }
+
     public class Startup
     {
         public IConfiguration Configuration { get; }
@@ -29,6 +35,10 @@ namespace RoomForRent
         {
             var mvcBuilder = services.AddControllersWithViews();
             mvcBuilder.AddRazorRuntimeCompilation();
+
+            services.Configure<RoomForRentOptions>(
+                Configuration.GetSection(RoomForRentOptions.OptionsName)
+                );
 
             services.AddDbContext<RoomForRentDbContext>(opt =>
                 {
