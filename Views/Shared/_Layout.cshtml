@@ -28,9 +28,7 @@
     <div class="container-fluid">
         <div class="row m-2">
             <div class="col-2">
-                <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Home">Transactions</a>
-                <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Leaser">Leasers</a>
-                <a class="btn btn-dark btn-block btn-outline-secondary" asp-action="Index" asp-controller="Renter">Renters</a>
+                <vc:sidebar />
             </div>
             <div class="col-10">
                 @RenderBody()
@@ -42,23 +40,23 @@
                 </div>*@
         </div>
     </div>
-</body>
 
-@RenderSection("Footer", required: false);
-@if (!IsSectionDefined("Footer"))
-{
-    <style>
-        .footer {
-            position: fixed;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-        }
-    </style>
-    <footer class="footer">
-        <div class="bg-dark text-white text-center ">
-            <span>RoomForRent CopyRight © 2020 </span>
-        </div>
-    </footer>
-}
+    @RenderSection("Footer", required: false);
+    @if (!IsSectionDefined("Footer"))
+    {
+        <style>
+            .footer {
+                position: fixed;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+            }
+        </style>
+        <footer class="footer">
+            <div class="bg-dark text-white text-center ">
+                <span>CopyRight RoomForRent©2020 </span>
+            </div>
+        </footer>
+    }
+</body>
 </html>

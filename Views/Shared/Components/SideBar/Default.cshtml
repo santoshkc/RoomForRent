@@ -1,0 +1,12 @@
+﻿@model RoomForRent.Components.SideBarViewData
+<div>
+    <ul class="list-unstyled">
+        @foreach(var (controller,actionName,displayName,isSelected) in Model.GetItems())
+        {
+            <li class="mb-2">
+                <a class="btn btn-block @(isSelected ? "btn-dark" : "btn-outline-dark")" 
+                   asp-action="@actionName" asp-controller="@controller">@displayName</a>
+            </li>
+        }
+    </ul>
+</div>
