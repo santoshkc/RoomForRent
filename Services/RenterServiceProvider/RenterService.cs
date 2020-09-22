@@ -46,7 +46,7 @@ namespace RoomForRent.Services.RenterServiceProvider
             return pastRenters;
         }
 
-        internal async Task<bool> MarkAsFound(int renterId)
+        internal async Task<bool> MarkAsFound(int renterId,bool callSaveChanges = true)
         {
             var renter = await this.renterRepository
                 .GetRenterByIdAsync(renterId);
@@ -55,7 +55,8 @@ namespace RoomForRent.Services.RenterServiceProvider
             {
                 renter.Found = true;
                 renter.FoundDate = DateTime.Now;
-                await this.renterRepository.SaveChangesAsync();
+                if(callSaveChanges)
+                    await this.renterRepository.SaveChangesAsync();
                 return true;
             }
             return false;

@@ -97,7 +97,7 @@ namespace RoomForRent.Services.LeaserServiceProvider
             return await this.leaserRepository.GetLeasers(pageCount, itemsPerPage, retrievePastUsers);
         }
 
-        internal async Task<bool> MarkAsLeased(int leaserId)
+        internal async Task<bool> MarkAsLeased(int leaserId,bool callSaveChanges = true)
         {
             Leaser leaser = await this.leaserRepository
                     .GetLeaserByIdAsync(leaserId);
@@ -107,7 +107,8 @@ namespace RoomForRent.Services.LeaserServiceProvider
                 leaser.AssetInfo.IsLeased = true;
                 leaser.AssetInfo.LeasedDate = DateTime.Now;
 
-                return await this.leaserRepository.SaveChangesAsync();
+                if(callSaveChanges)
+                    return await this.leaserRepository.SaveChangesAsync();
             }
             return false;
         }
