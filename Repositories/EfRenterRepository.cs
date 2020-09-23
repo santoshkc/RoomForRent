@@ -48,12 +48,39 @@ namespace RoomForRent.Repositories
             return renters;
         }
 
+        public async Task<IEnumerable<Renter>> GetRentersByName(string renterName,int pageCount, int itemsPerPage, bool retrivePastLeasers = false)
+        {
+            var renters = await this.roomForRentDbContext
+                            .Renters
+                            .Where(x => (retrivePastLeasers ?
+                                    x.Found == true
+                                    : (x.Found.HasValue == false || x.Found.Value == false)
+                                    ) 
+                                && EF.Functions.Like(x.Name, $"%{renterName}%")
+                                )
+                            .Skip((pageCount - 1) * itemsPerPage)
+                            .Take(itemsPerPage)
+                            .ToListAsync();
+
+            return renters;
+        }
+
         public async Task<int> GetRentersCount(bool retrievePastLeasers = false)
         {
             return await this.roomForRentDbContext.Renters
                                 .CountAsync(x => retrievePastLeasers 
                                     ? x.Found == true
                                   : (x.Found == null || x.Found.Value == false)
+                                  );
+        }
+
+        public async Task<int> GetRentersByNameCount(string renterName, bool retrievePastLeasers = false)
+        {
+            return await this.roomForRentDbContext.Renters
+                                .CountAsync(x => (retrievePastLeasers
+                                    ? x.Found == true
+                                  : (x.Found == null || x.Found.Value == false)
+                                  ) && EF.Functions.Like(x.Name,$"%{renterName}%")
                                   );
         }
 

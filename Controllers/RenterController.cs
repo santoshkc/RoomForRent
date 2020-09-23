@@ -34,14 +34,34 @@ namespace RoomForRent.Controllers
 
         private readonly int ItemsPerPage;
 
-        public async Task<IActionResult> Index(int pageCount)
+        public async Task<IActionResult> Index(int pageCount,string renterName=null)
         {
             if (pageCount <= 1)
                 pageCount = 1;
 
-            var renterViewInfo = await renterService.GetRenterList(pageCount,ItemsPerPage);
+            if(string.IsNullOrWhiteSpace(renterName) == false)
+            {
+                var renters = await this.renterRepository
+                                .GetRentersByName(renterName, pageCount, this.ItemsPerPage);
 
-            return View(renterViewInfo);
+                var renterViewInfo = new RenterListViewModel
+                {
+                    Renters = renters,
+                    PagingInfo = new PagingInfo
+                    {
+                        CurrentPage = pageCount,
+                        ItemsPerPage = this.ItemsPerPage,
+                        TotalItems = await this.renterRepository.GetRentersByNameCount(renterName,false)
+                    }
+                };
+                return View(renterViewInfo);
+            } 
+            else
+            {
+                var renterViewInfo = await renterService
+                    .GetRenterList(pageCount, ItemsPerPage);
+                return View(renterViewInfo);
+            }
         }
 
         public async Task<IActionResult> History()
@@ -120,7 +140,5 @@ namespace RoomForRent.Controllers
 
             return RedirectToAction("EditDetails", new { id = renterEditModel.ID });
         }
-
-        
     }
 }

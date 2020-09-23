@@ -1,9 +1,26 @@
 ﻿@model RenterListViewModel
-<div class="bg-dark text-white text-center p-2">
-    <span class="navbar-brand text-center ml-2">Active Renters</span>
-    <a class="btn btn-light float-right m-1" asp-action="History">History</a>
-    <a class="btn btn-light float-right m-1" asp-action="Create">Add New Renter</a>
-</div>
+    <nav class="nav navbar-dark bg-dark" >
+        <span class="navbar-brand text-center ml-2">Active Renters</span>
+        <ul class="nav ml-auto p-2">
+            <li class="nav-item">
+                <form asp-action="Index" class="form-inline ml-2">
+                    <input type="text" placeholder="Search Renter" name="renterName" id="renterName"
+                           autocomplete="off"
+                           required
+                           onkeydown="if (event.keyCode == 13)
+                    document.getElementById('btnSearch').click()" />
+                    <input type="submit" value="Search" id="btnSearch" style="visibility:hidden;width:0px" />
+                </form>
+            </li>
+            <li class="nav-item">
+                <a class="btn btn-light ml-2 p-1" asp-action="Create">Add Renter</a>
+            </li>
+            <li class="nav-item">
+                <a class="btn btn-light ml-2 p-1" asp-action="History">History</a>
+            </li>
+
+        </ul>
+    </nav>
 
 <div class="container-fluid">
     <div class="row">

@@ -16,6 +16,10 @@ namespace RoomForRent.Repositories
 
         Task<IEnumerable<Renter>> GetRenters(int pageCount, int itemsPerPage, bool retrivePastLeasers = false);
 
+        Task<IEnumerable<Renter>> GetRentersByName(string renterName, int pageCount, int itemsPerPage, bool retrivePastLeasers = false);
+
+        Task<int> GetRentersByNameCount(string renterName, bool retrievePastLeasers = false);
+
         Task<int> GetRentersCount(bool retrievePastLeasers = false);
 
         Task<bool> SaveChangesAsync();
