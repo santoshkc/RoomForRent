@@ -18,6 +18,10 @@ namespace RoomForRent.Repositories
 
         Task<IEnumerable<Leaser>> GetLeasers(int pageCount, int itemsPerPage, bool retrivePastLeasers = false);
 
+        Task<IEnumerable<Leaser>> GetLeasersByNameAsync(string leaserName, int pageCount, int itemsPerPage, bool retrivePastLeasers = false);
+
+        Task<int> GetLeasersByNameCountAsync(string leaserName, bool retrievePastLeasers = false);
+
         Task<int> GetLeasersCount(bool retrievePastLeasers = false);
     }
 }

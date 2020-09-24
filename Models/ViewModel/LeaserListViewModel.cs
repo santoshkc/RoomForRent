@@ -7,6 +7,8 @@ namespace RoomForRent.Models.ViewModel
 {
     public class LeaserListViewModel
     {
+        public string CurrentLeaser { get; set; }
+
         public IEnumerable<Leaser> Leasers { get; set; }
 
         public PagingInfo PagingInfo { get; set; }

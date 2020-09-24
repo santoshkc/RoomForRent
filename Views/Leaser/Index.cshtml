@@ -1,9 +1,26 @@
 ﻿@model LeaserListViewModel
-<div class="bg-dark text-white text-center p-2">
-    <span class="navbar-brand ml-2">Active Leasers</span>
-    <a class="btn btn-light float-right m-1" asp-action="History">History</a>
-    <a class="btn btn-light float-right m-1" asp-action="Create">Add New Leaser</a>
-</div>
+
+<nav class="nav navbar-dark bg-dark">
+    <span class="navbar-brand text-center ml-2">Active Leasers</span>
+    <ul class="nav ml-auto p-2">
+        <li class="nav-item">
+            <form method = "get" asp-action="Index" class="form-inline ml-2">
+                <input type="text" placeholder="Search Leaser" name="leaserName" id="leaserId"
+                       autocomplete="off"
+                       required
+                       onkeydown="if (event.keyCode == 13)
+                    document.getElementById('btnSearch').click()" />
+                <input type="submit" value="Search" id="btnSearch" style="visibility:hidden;width:0px" />
+            </form>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-light ml-2 p-1" asp-action="Create">Add Leaser</a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-light ml-2 p-1" asp-action="History">History</a>
+        </li>
+    </ul>
+</nav>
     
 <div class = "container-fluid">
     <div class="row">
@@ -55,6 +72,7 @@
                  page-classes-enabled="true"
                 page-class="btn" page-class-normal="btn-outline-dark"
                 page-class-selected="btn-dark" 
+                page-url-leaserName ="Model.CurrentLeaser"
                  class="btn-group pull-right m-1">
             </div>
         </div>

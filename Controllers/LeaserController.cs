@@ -22,6 +22,7 @@ namespace RoomForRent.Controllers
         private readonly IOptions<RoomForRentOptions> optionsAccessor;
 
         public LeaserController(IOptions<RoomForRentOptions> optionsAccessor, ILeaserRepository roomLeaserRepository) {
+
             leaserService = new LeaserService(roomLeaserRepository);
             this.optionsAccessor = optionsAccessor;
             this.ItemsPerPage = this.optionsAccessor.Value.ItemsPerPage;
@@ -29,9 +30,28 @@ namespace RoomForRent.Controllers
         
         private readonly int ItemsPerPage;
 
-        public async Task<IActionResult> Index(int pageCount) {
+        public async Task<IActionResult> Index(int pageCount, [FromQuery]string leaserName = null) {
             if (pageCount <= 1)
                 pageCount = 1;
+
+            if(!string.IsNullOrWhiteSpace(leaserName))
+            {
+                var (activeLeasers,activeLeasersCount) = await this.leaserService
+                    .GetLeasersByNameAsync(leaserName, pageCount, ItemsPerPage);
+
+                var leaserByNameViewInfo = new LeaserListViewModel
+                {
+                    CurrentLeaser = leaserName,
+                    Leasers = activeLeasers,
+                    PagingInfo = new PagingInfo
+                    {
+                        CurrentPage = pageCount,
+                        ItemsPerPage = ItemsPerPage,
+                        TotalItems = activeLeasersCount
+                    }
+                };
+                return View(leaserByNameViewInfo);
+            }
 
             var (leasers, totalActiveLeasers) = await this.leaserService.GetLeasers(pageCount,ItemsPerPage);
 

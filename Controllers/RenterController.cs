@@ -46,6 +46,7 @@ namespace RoomForRent.Controllers
 
                 var renterViewInfo = new RenterListViewModel
                 {
+                    CurrentRenter = renterName,
                     Renters = renters,
                     PagingInfo = new PagingInfo
                     {

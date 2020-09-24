@@ -55,6 +55,34 @@ namespace RoomForRent.Repositories
                             .ToListAsync();
         }
 
+        public async Task<IEnumerable<Leaser>> GetLeasersByNameAsync(string leaserName,int pageCount, int itemsPerPage, bool retrivePastLeasers = false)
+        {
+            return await this.roomForRentDbContext
+                            .Leasers
+                            .Include(x => x.AssetInfo)
+                            .Where(x => (retrivePastLeasers ?
+                                    x.AssetInfo.IsLeased == true
+                                    : (x.AssetInfo.IsLeased == null || x.AssetInfo.IsLeased == false)
+                                    )
+                                && EF.Functions.Like(x.Name, $"%{leaserName}%")
+                                    )
+                            .Skip((pageCount - 1) * itemsPerPage)
+                            .Take(itemsPerPage)
+                            .ToListAsync();
+        }
+
+        public async Task<int> GetLeasersByNameCountAsync(string leaserName,bool retrievePastLeasers = false)
+        {
+            return await this.roomForRentDbContext
+                            .Leasers
+                            .CountAsync(x => (retrievePastLeasers ?
+                               x.AssetInfo.IsLeased == true
+                               : (x.AssetInfo.IsLeased == null || x.AssetInfo.IsLeased == false)
+                               )
+                               && EF.Functions.Like(x.Name, $"%{leaserName}%")
+                               );
+        }
+
         public async Task<bool> SaveChangesAsync()
         {
             var result = await roomForRentDbContext.SaveChangesAsync() >= 0;

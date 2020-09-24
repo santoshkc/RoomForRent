@@ -3,7 +3,7 @@
         <span class="navbar-brand text-center ml-2">Active Renters</span>
         <ul class="nav ml-auto p-2">
             <li class="nav-item">
-                <form asp-action="Index" class="form-inline ml-2">
+                <form method = "get" asp-action="Index" class="form-inline ml-2">
                     <input type="text" placeholder="Search Renter" name="renterName" id="renterName"
                            autocomplete="off"
                            required
@@ -66,6 +66,7 @@
                  page-classes-enabled="true"
                  page-class="btn" page-class-normal="btn-outline-dark"
                  page-class-selected="btn-dark"
+                 page-url-renterName="Model.CurrentRenter"
                  class="btn-group pull-right m-1">
             </div>
         </div>

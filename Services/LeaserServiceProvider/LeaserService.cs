@@ -51,6 +51,17 @@ namespace RoomForRent.Services.LeaserServiceProvider
             return null;
         }
 
+        internal async Task<(IEnumerable<Leaser> leasers, int activeLeasers)> GetLeasersByNameAsync(string leaserName, int pageCount, int itemsPerPage)
+        {
+            var leasers = await this.leaserRepository
+                .GetLeasersByNameAsync(leaserName, pageCount, itemsPerPage);
+
+            var activeLeasersCount = await this.leaserRepository
+                .GetLeasersByNameCountAsync(leaserName);
+
+            return (leasers, activeLeasersCount);
+        }
+
         internal async Task<bool> UpdateLeaserEditDetails(LeaserEditModel leaserEditModel)
         {
             var leaser = await this.leaserRepository.
