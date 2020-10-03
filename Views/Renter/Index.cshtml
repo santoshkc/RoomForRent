@@ -1,26 +1,27 @@
 ﻿@model RenterListViewModel
-    <nav class="nav navbar-dark bg-dark" >
-        <span class="navbar-brand text-center ml-2">Active Renters</span>
-        <ul class="nav ml-auto p-2">
-            <li class="nav-item">
-                <form method = "get" asp-action="Index" class="form-inline ml-2">
-                    <input type="text" placeholder="Search Renter" name="renterName" id="renterName"
-                           autocomplete="off"
-                           required
-                           onkeydown="if (event.keyCode == 13)
-                    document.getElementById('btnSearch').click()" />
-                    <input type="submit" value="Search" id="btnSearch" style="visibility:hidden;width:0px" />
-                </form>
-            </li>
-            <li class="nav-item">
-                <a class="btn btn-light ml-2 p-1" asp-action="Create">Add Renter</a>
-            </li>
-            <li class="nav-item">
-                <a class="btn btn-light ml-2 p-1" asp-action="History">History</a>
-            </li>
 
-        </ul>
-    </nav>
+<nav class="nav navbar-dark bg-dark" >
+    <span class="navbar-brand text-center ml-2">Active Renters</span>
+    <ul class="nav ml-auto p-2">
+        <li class="nav-item">
+            <form method = "get" asp-action="Index" class="form-inline ml-2">
+                <input type="text" placeholder="Search Renter" name="renterName" id="renterName"
+                        autocomplete="off"
+                        required
+                        onkeydown="if (event.keyCode == 13)
+                document.getElementById('btnSearch').click()" />
+                <input type="submit" value="Search" id="btnSearch" style="visibility:hidden;width:0px" />
+            </form>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-light ml-2 p-1" asp-action="Create">Add Renter</a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-light ml-2 p-1" asp-action="History">History</a>
+        </li>
+
+    </ul>
+</nav>
 
 <div class="container-fluid">
     <div class="row">
@@ -36,22 +37,29 @@
                 </tr>
             </thead>
             <tbody>
+                
                 @foreach (var renter in Model.Renters)
                 {
-                    <tr>
+                    <tr id="rid_@renter.ID">
                         <td>@renter.Name</td>
                         <td>@renter.Address</td>
                         <td>@renter.ContactNumber</td>
                         <td>@renter.SeekedAsset.ToString()</td>
                         <td>
-                            <a asp-action="Details" asp-route-id="@renter.ID">View Details</a>
-                            <a asp-action="EditDetails" asp-route-id="@renter.ID" class="m-1">Edit</a>
-                            <a asp-action="LinkToLeaser" asp-controller="Home" asp-route-id="@renter.ID" class="m-1">Link</a>
+                            <a class="btn-sm btn-dark" asp-action="Details" asp-route-id="@renter.ID">View Details</a>
+                            <a class="btn-sm btn-dark m-1" asp-action="EditDetails" asp-route-id="@renter.ID" >Edit</a>
+                            <a class="btn-sm btn-dark m-1" asp-action="LinkToLeaser" asp-controller="Home" asp-route-id="@renter.ID">Link</a>
                         </td>
                         <td>
-                            <form asp-action="MarkAsFound" method="post">
+                            <form>
                                 <input type="hidden" name="renterId" value="@renter.ID" />
-                                <button class="btn btn-dark" type="submit">Mark as Found</button>
+                                <button class="btn btn-sm btn-danger" type="submit" onclick="return function (event) {
+                                    event.preventDefault();
+                                    let rowId = 'rid_@renter.ID';
+                                    let dataToSend = { renterId: @renter.ID }
+                                    let url = '@Url.Action("CancelRent")';
+                                    postDataToUrlAndHideElementOnSuccess(rowId,dataToSend,url);
+                                }(event)">Cancel Rent</button>
                             </form>
                         </td>
                     </tr>

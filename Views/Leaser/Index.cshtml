@@ -38,7 +38,7 @@
             <tbody>
                 @foreach (var leaserInfo in Model.Leasers)
                 {
-                    <tr>
+                    <tr id="rid_@leaserInfo.ID">
                         <td>@leaserInfo.Name</td>
                         <td>@leaserInfo.Address</td>
                         <td>@leaserInfo.AssetInfo.Type.ToString()</td>
@@ -49,15 +49,21 @@
                         </td>
                         <td>
                             <span>
-                                <a asp-action="Details" asp-route-id="@leaserInfo.ID">View</a>
-                                <a asp-action="EditDetails" asp-route-id="@leaserInfo.ID" class="m-1">Edit</a>
-                                <a asp-action="LinkToRenter" asp-controller="Home" asp-route-id="@leaserInfo.ID" class="m-1">Link</a>
+                                <a class="btn-sm btn-dark" asp-action="Details" asp-route-id="@leaserInfo.ID">View</a>
+                                <a class="btn-sm btn-dark m-1" asp-action="EditDetails" asp-route-id="@leaserInfo.ID" >Edit</a>
+                                <a class="btn-sm btn-dark m-1" asp-action="LinkToRenter" asp-controller="Home" asp-route-id="@leaserInfo.ID" >Link</a>
                             </span>
                         </td>
                         <td>
-                            <form asp-action="MarkAsLeased" method="post">
+                            <form>
                                 <input type="hidden" name="leaserId" value="@leaserInfo.ID" />
-                                <button type="submit" class="btn btn-dark">Mark As Leased</button>
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return function(event) {
+                                    event.preventDefault();
+                                    let rowId = 'rid_@leaserInfo.ID';
+                                    let dataToSend = { leaserId: @leaserInfo.ID };
+                                    let urlToPost = '@Url.Action("CancelLease")';
+                                    postDataToUrlAndHideElementOnSuccess(rowId, dataToSend, urlToPost);
+                                }(event)">Cancel Lease</button>
                             </form>
                         </td>
                     </tr>
@@ -77,4 +83,4 @@
             </div>
         </div>
     }
-<div>
+</div>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using RoomForRent.Infrastructure;
 using RoomForRent.Models;
 using RoomForRent.Models.ViewModel;
 using RoomForRent.Repositories;
+using RoomForRent.Services.RenterLeaserTransactionServiceProvider;
 using RoomForRent.Services.RenterServiceProvider;
 
 namespace RoomForRent.Controllers
@@ -23,13 +25,20 @@ namespace RoomForRent.Controllers
 
         private readonly RenterService renterService = null;
 
-        public RenterController(IOptions<RoomForRentOptions> optionsAccessor, IRenterRepository renterRepository)
+        private readonly RenterLeaserTransactionService transactionService = null;
+
+        private readonly IRepositoryWrapper repositoryWrapper = null;
+
+        public RenterController(IOptions<RoomForRentOptions> optionsAccessor, IRepositoryWrapper repositoryWrapper)
         {
+            this.repositoryWrapper = repositoryWrapper;
             this.optionsAccessor = optionsAccessor;
             this.ItemsPerPage = optionsAccessor.Value.ItemsPerPage;
 
-            this.renterRepository = renterRepository;
+            this.renterRepository = repositoryWrapper.RenterRepository;
             renterService = new RenterService(renterRepository);
+
+            this.transactionService = new RenterLeaserTransactionService(repositoryWrapper);
         }
 
         private readonly int ItemsPerPage;
@@ -140,6 +149,13 @@ namespace RoomForRent.Controllers
             }
 
             return RedirectToAction("EditDetails", new { id = renterEditModel.ID });
+        }
+
+        [HttpPost]
+        public JsonResult CancelRent([FromForm] int renterId)
+        {
+            var result = this.transactionService.CancelRenterTransaction(renterId);
+            return new JsonResult(new { RenterId = renterId, IsSuccess = result });
         }
     }
 }

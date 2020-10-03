@@ -65,6 +65,8 @@ namespace RoomForRent
 
             services.AddScoped<ITransactionRepository,
                 EfRenterLeaserTransactionRepository>();
+
+            services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

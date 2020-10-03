@@ -12,23 +12,35 @@ using RoomForRent.Models.LeaserModels;
 using RoomForRent.Models.ViewModel;
 using RoomForRent.Repositories;
 using RoomForRent.Services.LeaserServiceProvider;
+using RoomForRent.Services.RenterLeaserTransactionServiceProvider;
 
 namespace RoomForRent.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class LeaserController : Controller
     {
+        private readonly IRepositoryWrapper repositoryWrapper;
         private readonly LeaserService leaserService = null;
         private readonly IOptions<RoomForRentOptions> optionsAccessor;
 
-        public LeaserController(IOptions<RoomForRentOptions> optionsAccessor, ILeaserRepository roomLeaserRepository) {
+        private readonly RenterLeaserTransactionService transactionService = null;
 
-            leaserService = new LeaserService(roomLeaserRepository);
+        public LeaserController(IOptions<RoomForRentOptions> optionsAccessor, IRepositoryWrapper repositoryWrapper)
+        {
+            this.repositoryWrapper = repositoryWrapper;
+
+            leaserService = new LeaserService(this.repositoryWrapper.LeaserRepository);
+
+            transactionService = new RenterLeaserTransactionService(this.repositoryWrapper);
+
             this.optionsAccessor = optionsAccessor;
+            TransactionRepository = this.repositoryWrapper.TransactionRepository;
             this.ItemsPerPage = this.optionsAccessor.Value.ItemsPerPage;
         }
         
         private readonly int ItemsPerPage;
+
+        public ITransactionRepository TransactionRepository { get; }
 
         public async Task<IActionResult> Index(int pageCount, [FromQuery]string leaserName = null) {
             if (pageCount <= 1)
@@ -143,6 +155,13 @@ namespace RoomForRent.Controllers
             // should display custom error page
             // for now show bad request
             return BadRequest();
+        }
+
+        [HttpPost]
+        public JsonResult CancelLease([FromForm] int leaserId)
+        {
+            var result = this.transactionService.CancelLeaserTransaction(leaserId);
+            return new JsonResult(new { LeaserId = leaserId, IsSuccess = result });
         }
 
         // custom attribute created for implementing

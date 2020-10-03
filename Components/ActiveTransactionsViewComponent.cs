@@ -13,9 +13,9 @@ namespace RoomForRent.Components
     {
         private RenterLeaserTransactionService service = null;
 
-        public ActiveTransactionsViewComponent(ITransactionRepository transactionRepository)
+        public ActiveTransactionsViewComponent(IRepositoryWrapper repositoryWrapper)
         {
-            service = new RenterLeaserTransactionService(transactionRepository);
+            service = new RenterLeaserTransactionService(repositoryWrapper);
         }
 
         public IViewComponentResult Invoke(int id, bool isRenter)

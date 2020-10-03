@@ -13,24 +13,33 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
 {
     public class RenterLeaserTransactionService
     {
+        private readonly IRepositoryWrapper repositoryWrapper;
+
         private readonly ITransactionRepository transactionRepository;
 
         private readonly LeaserService leaserService = null;
 
         private readonly RenterService renterService = null;
 
-        public RenterLeaserTransactionService(ITransactionRepository transactionRepository)
-        {
-            this.transactionRepository = transactionRepository;
-            this.leaserService = new LeaserService(this.transactionRepository.LeaserRepository);
+        private readonly IRenterRepository renterRepository = null;
 
-            this.renterService = new RenterService(this.transactionRepository.RenterRepository);
+        private readonly ILeaserRepository leaserRepository = null;
+
+        public RenterLeaserTransactionService(IRepositoryWrapper repositoryWrapper)
+        {
+            this.repositoryWrapper = repositoryWrapper;
+            this.transactionRepository = this.repositoryWrapper.TransactionRepository;
+
+            this.renterRepository = repositoryWrapper.RenterRepository;
+            this.leaserRepository = repositoryWrapper.LeaserRepository;
+
+            this.leaserService = new LeaserService(this.leaserRepository);
+            this.renterService = new RenterService(this.renterRepository);
         }
 
         internal async Task<RenterLeasersLinkDto> GetPotentialLeasersDto(int renterId)
         {
-            var renter = await this.transactionRepository
-                            .RenterRepository
+            var renter = await this.renterRepository
                             .GetRenterByIdAsync(renterId);
 
             var leasers = await this.transactionRepository
@@ -46,8 +55,7 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
 
         internal async Task<LeaserRentersLinkDto> GetPotentialRentersDto(int leaserId)
         {
-            var leaser = await this.transactionRepository.
-                                LeaserRepository
+            var leaser = await this.leaserRepository
                                 .GetLeaserByIdAsync(leaserId);
 
             var renters = await this.transactionRepository
@@ -63,16 +71,16 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
 
         internal async Task<bool> LinkRenterAndLeaser(int leaserId,int renterId)
         {
-            var leaser = await this.transactionRepository
-                .LeaserRepository.GetLeaserByIdAsync(leaserId);
+            var leaser = await this.leaserRepository
+                .GetLeaserByIdAsync(leaserId);
 
             if(leaser == null)
             {
                 return false;
             }
 
-            var renter = await this.transactionRepository
-                .RenterRepository.GetRenterByIdAsync(renterId);
+            var renter = await this.renterRepository
+                .GetRenterByIdAsync(renterId);
 
             if(renter == null)
             {
@@ -97,8 +105,7 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             var rentersInfo = new List<RenterTransactionInfo>();
             if (renterId.HasValue)
             {
-                var renterInfo = await this.transactionRepository
-                    .RenterRepository
+                var renterInfo = await this.renterRepository
                     .GetRenterByIdAsync(renterId.Value);
 
                 if (renterInfo != null)
@@ -114,8 +121,7 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             }
             else
             {
-                var renters = await this.transactionRepository
-                        .RenterRepository
+                var renters = await this.renterRepository
                         .GetRenters(1, 5, false);
                         
                 var rentersToAdd = renters.Select(x => new RenterTransactionInfo
@@ -132,8 +138,8 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             var leasersInfo = new List<LeaserTransactionInfo>();
             if (leaserId.HasValue)
             {
-                var leaserInfo = await this.transactionRepository
-                    .LeaserRepository.GetLeaserByIdAsync(leaserId.Value);
+                var leaserInfo = await this.leaserRepository
+                    .GetLeaserByIdAsync(leaserId.Value);
 
                 if (leaserInfo != null)
                 {
@@ -148,8 +154,7 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
             }
             else
             {
-                var leasers = await this.transactionRepository
-                    .LeaserRepository
+                var leasers = await this.leaserRepository
                     .GetLeasers(1, 5, false);
                     
                 var leasersToAdd = leasers.Select(x => new LeaserTransactionInfo
@@ -167,6 +172,53 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
                 Leasers = leasersInfo,
                 Renters = rentersInfo,
             };
+        }
+
+        internal bool CancelLeaserTransaction(int leaserId)
+        {
+            var leaserTransactions = this.GetAllLeaserTransactionsInternal(leaserId);
+            foreach(var transaction in leaserTransactions)
+            {
+                transaction.LastModifiedDate = DateTime.Now;
+                transaction.TransactionStatus = RenterLeaserTransactionStatus.NoDeal;
+            }
+
+            var leaserTask = this.leaserRepository
+                    .GetLeaserByIdAsync(leaserId);
+
+            leaserTask.Wait();
+            var leaser = leaserTask.Result;
+            leaser.AssetInfo.IsLeased = true;
+            leaser.AssetInfo.LeasedDate = DateTime.Now;
+
+            return this.repositoryWrapper.Save();
+        }
+
+        internal bool CancelRenterTransaction(int renterId)
+        {
+            var renterTransactions
+                = this.GetAllRenterTransactionsInternal(renterId);
+            foreach (var transaction in renterTransactions)
+            {
+                transaction.LastModifiedDate = DateTime.Now;
+                transaction.TransactionStatus = RenterLeaserTransactionStatus.NoDeal;
+            }
+
+            var renterTask = this.renterRepository
+                .GetRenterByIdAsync(renterId);
+            renterTask.Wait();
+            var renter = renterTask.Result;
+            renter.Found = true;
+            renter.FoundDate = DateTime.Now;
+
+            return this.repositoryWrapper.Save();
+        }
+
+        internal bool SaveChanges()
+        {
+            var task = this.transactionRepository.SaveChangesAsync();
+            task.Wait();
+            return task.Result;
         }
 
         public RenterLeaserTransactionDto GetTransaction(int transactionId)
@@ -270,54 +322,60 @@ namespace RoomForRent.Services.RenterLeaserTransactionServiceProvider
                     CreatedDate = x.CreatedDate,
                     LastModifiedDate = x.LastModifiedDate,
                     TransactionStatus = x.TransactionStatus,
-                    LeaserName =  this.transactionRepository
-                    .LeaserRepository.Leaser.
-                    Where(y => y.ID == x.LeaserId).FirstOrDefault()?.Name ?? "N/A",
-                    RenterName = this.transactionRepository
-                    .RenterRepository.Renters.
-                    Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
+                    LeaserName =  this.leaserRepository.Leaser.
+                        Where(y => y.ID == x.LeaserId).FirstOrDefault()?.Name ?? "N/A",
+                    RenterName = this.renterRepository.Renters.
+                        Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
                 }).ToList();
         }
 
         public IEnumerable<RenterLeaserTransactionDto> GetAllRenterTransactions(int renterId, bool showAll = false)
         {
-            return this.transactionRepository
-                .Transactions
-                .Where(x => x.RenterId == renterId && 
-                    (showAll || x.TransactionStatus == RenterLeaserTransactionStatus.Pending))
+            var transactions = GetAllLeaserTransactionsInternal(renterId, showAll);
+            return transactions
                 .Select(x => new RenterLeaserTransactionDto
                 {
                     Id = x.ID,
                     CreatedDate = x.CreatedDate,
                     LastModifiedDate = x.LastModifiedDate,
                     TransactionStatus = x.TransactionStatus,
-                    LeaserName = this.transactionRepository
-                    .LeaserRepository.Leaser.
-                    Where(y => y.ID == x.LeaserId).FirstOrDefault()?.Name ?? "N/A",
-                    RenterName = this.transactionRepository
-                    .RenterRepository.Renters.
-                    Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
+                    LeaserName = this.leaserRepository
+                        .Leaser.Where(y => y.ID == x.LeaserId).FirstOrDefault()?.Name ?? "N/A",
+                    RenterName = this.renterRepository
+                        .Renters.Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
                 });
         }
 
-        public IEnumerable<RenterLeaserTransactionDto> GetAllLeaserTransactions(int leaserId, bool showAll = false)
+        private IEnumerable<RenterLeaserTransaction> GetAllRenterTransactionsInternal(int renterId, bool showAll = false)
+        {
+            return this.transactionRepository
+                .Transactions
+                .Where(x => x.RenterId == renterId &&
+                    (showAll || x.TransactionStatus == RenterLeaserTransactionStatus.Pending));
+        }
+
+        private IEnumerable<RenterLeaserTransaction> GetAllLeaserTransactionsInternal(int leaserId, bool showAll = false)
         {
             return this.transactionRepository
                 .Transactions
                 .Where(x => x.LeaserId == leaserId &&
-                    (showAll || x.TransactionStatus == RenterLeaserTransactionStatus.Pending))
+                    (showAll || x.TransactionStatus == RenterLeaserTransactionStatus.Pending));
+        }
+
+        public IEnumerable<RenterLeaserTransactionDto> GetAllLeaserTransactions(int leaserId, bool showAll = false)
+        {
+            var transactions = GetAllLeaserTransactionsInternal(leaserId, showAll);
+            return transactions
                 .Select(x => new RenterLeaserTransactionDto
                 {
                     Id = x.ID,
                     CreatedDate = x.CreatedDate,
                     LastModifiedDate = x.LastModifiedDate,
                     TransactionStatus = x.TransactionStatus,
-                    LeaserName = this.transactionRepository
-                    .LeaserRepository.Leaser.
-                    Where(y => y.ID == x.LeaserId).FirstOrDefault()?.Name ?? "N/A",
-                    RenterName = this.transactionRepository
-                    .RenterRepository.Renters.
-                    Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
+                    LeaserName = this.leaserRepository
+                        .Leaser.Where(y => y.ID == x.LeaserId).FirstOrDefault()?.Name ?? "N/A",
+                    RenterName = this.renterRepository
+                        .Renters.Where(y => y.ID == x.RenterId).FirstOrDefault()?.Name ?? "N/A",
                 });
         }
     }

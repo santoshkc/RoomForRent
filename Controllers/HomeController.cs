@@ -21,10 +21,10 @@ namespace RoomForRent.Controllers
 
         private readonly RenterLeaserTransactionService renterLeaserTransactionService = null;
 
-        public HomeController(ITransactionRepository transactionRepository)
+        public HomeController(IRepositoryWrapper repositoryWrapper)
         {
-            this.transactionRepository = transactionRepository;
-            renterLeaserTransactionService = new RenterLeaserTransactionService(transactionRepository);
+            this.transactionRepository = repositoryWrapper.TransactionRepository;
+            renterLeaserTransactionService = new RenterLeaserTransactionService(repositoryWrapper);
         }
 
         public IActionResult Index()
